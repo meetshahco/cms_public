@@ -1,0 +1,6 @@
+<svg width="260" height="320" xmlns="http://www.w3.org/2000/svg">
+  <rect width="260" height="320" fill="#e8e0d8"/>
+  <circle cx="130" cy="110" r="50" fill="#c9bfb3"/>
+  <ellipse cx="130" cy="280" rx="70" ry="80" fill="#c9bfb3"/>
+  <text x="130" y="360" text-anchor="middle" font-family="Georgia, serif" font-size="14" fill="#8B7355">Add your photo</text>
+</svg>
