@@ -1,6 +1,12 @@
 {
-  "title": "Case Studies",
-  "slug": "case-studies",
+  "title": "case-studies",
   "type": "object",
-  "properties": {}
+  "properties": {
+    "parentProject": {
+      "description": "Slug of the parent project",
+      "fieldType": "String",
+      "dataType": "string",
+      "title": "parentProject"
+    }
+  }
 }
