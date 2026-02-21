@@ -9,7 +9,7 @@ function isAdminHost(hostname: string): boolean {
     );
 }
 
-export function proxy(request: NextRequest) {
+export default function middleware(request: NextRequest) {
     const hostname = request.headers.get("host") || "";
     const pathname = request.nextUrl.pathname;
 
