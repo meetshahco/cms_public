@@ -10,11 +10,9 @@ function isAdminHost(hostname: string): boolean {
     );
 }
 
-// Wrap middleware with next-auth's `auth` to get session info
-export default auth((request) => {
+export async function proxy(request: NextRequest) {
     const hostname = request.headers.get("host") || "";
     const pathname = request.nextUrl.pathname;
-    const isLoggedIn = !!request.auth?.user;
 
     // ─── Subdomain routing ───────────────────────────────────
     if (isAdminHost(hostname)) {
@@ -23,7 +21,7 @@ export default auth((request) => {
             return NextResponse.next();
         }
 
-        // API routes: allow through (they don't need rewriting)
+        // API routes: allow through (they don't need path rewriting)
         if (pathname.startsWith("/api/")) {
             return NextResponse.next();
         }
@@ -35,16 +33,16 @@ export default auth((request) => {
             return NextResponse.redirect(new URL(cleanPath, request.url));
         }
 
-        // Auth checks for subdomain
+        // Auth check — get session to protect admin routes
         const isLoginPage = pathname === "/login";
+        const session = await auth();
+        const isLoggedIn = !!session?.user;
 
         if (isLoginPage && isLoggedIn) {
-            // Already logged in, redirect to dashboard
             return NextResponse.redirect(new URL("/", request.url));
         }
 
         if (!isLoginPage && !isLoggedIn) {
-            // Not logged in, redirect to login
             return NextResponse.redirect(new URL("/login", request.url));
         }
 
@@ -67,7 +65,7 @@ export default auth((request) => {
     }
 
     return NextResponse.next();
-});
+}
 
 export const config = {
     matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
