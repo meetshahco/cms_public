@@ -12,11 +12,22 @@ function isAdminHost(hostname: string): boolean {
 }
 
 export default function middleware(request: NextRequest) {
+    const url = request.nextUrl.clone();
     const hostname = request.headers.get("host") || "";
-    const pathname = request.nextUrl.pathname;
+    const xForwardedHost = request.headers.get("x-forwarded-host");
+
+    // Check hostname from various sources for robustness
+    const currentHost = xForwardedHost || hostname || url.hostname;
+    const pathname = url.pathname;
+
+    const isAdminSubdomain =
+        currentHost === ADMIN_DOMAIN ||
+        currentHost.startsWith("admin.localhost") ||
+        currentHost.endsWith(`.${ADMIN_DOMAIN}`) ||
+        currentHost.includes("admin.meetshah.co");
 
     // ─── Subdomain routing ───────────────────────────────────
-    if (isAdminHost(hostname)) {
+    if (isAdminSubdomain) {
         // Skip internal Next.js routes and static assets
         if (pathname.startsWith("/_next/") || pathname === "/favicon.ico") {
             return NextResponse.next();
@@ -35,10 +46,7 @@ export default function middleware(request: NextRequest) {
         }
 
         // Rewrite: admin.meetshah.co/any-path -> /admin/any-path
-        const adminPath = pathname === "/" ? "/admin" : `/admin${pathname}`;
-        const url = request.nextUrl.clone();
-        url.pathname = adminPath;
-
+        url.pathname = pathname === "/" ? "/admin" : `/admin${pathname}`;
         return NextResponse.rewrite(url);
     }
 
