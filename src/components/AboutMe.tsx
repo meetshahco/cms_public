@@ -22,13 +22,13 @@ export function AboutMe() {
     return (
         <section
             ref={containerRef}
-            className="relative flex min-h-[80vh] items-center justify-center overflow-hidden py-24"
+            className="relative flex min-h-[80vh] items-center justify-center overflow-hidden py-24 [--orbit-radius:160px] sm:[--orbit-radius:250px] md:[--orbit-radius:300px] lg:[--orbit-radius:400px]"
         >
             {/* Background Orbital Animation */}
             <div className="absolute inset-0 flex items-center justify-center opacity-30 pointer-events-none">
                 {/* Animated Rotating Container */}
                 <motion.div
-                    className="relative w-[600px] h-[600px] md:w-[800px] md:h-[800px] rounded-full border border-neutral-800/50"
+                    className="relative w-[calc(var(--orbit-radius)*2)] h-[calc(var(--orbit-radius)*2)] rounded-full border border-neutral-800/50"
                     animate={{ rotate: 360 }}
                     transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
                 >
@@ -40,10 +40,10 @@ export function AboutMe() {
                                 key={i}
                                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
                                 style={{
-                                    transform: `rotate(${angle}deg) translate(300px) rotate(-${angle}deg)`,
+                                    transform: `rotate(${angle}deg) translate(var(--orbit-radius)) rotate(-${angle}deg)`,
                                 }}
                             >
-                                <div className="w-24 h-12 relative grayscale opacity-60 hover:opacity-100 transition-opacity flex items-center justify-center p-2 bg-black/50 rounded-lg backdrop-blur-sm">
+                                <div className="w-16 h-8 sm:w-24 sm:h-12 relative grayscale opacity-60 hover:opacity-100 transition-opacity flex items-center justify-center p-2 bg-black/50 rounded-lg backdrop-blur-sm">
                                     <Image
                                         src={brand.logo}
                                         alt={brand.name}

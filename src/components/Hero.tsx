@@ -31,32 +31,32 @@ const HIGHLIGHT_CONFIG: Record<string, HighlightConfig> = {
         media: "/assets/meet_shah_v2.jpg",
         decorationClass: "bg-blue-500 h-[3px]", // Standard thick underline
         textClass: "font-medium text-blue-200 drop-shadow-[0_0_6px_rgba(147,197,253,0.6)]", // Soft personal blue glow
-        walkerClass: "!w-48 !h-36 rounded-2xl rotate-2 shadow-2xl object-cover border-2 border-white/10", // 4:3 fixed size
+        walkerClass: "!w-32 !h-24 sm:!w-48 sm:!h-36 rounded-2xl rotate-2 shadow-2xl object-cover border-2 border-white/10", // 4:3 fixed size
     },
     "Product Designer": {
         media: "/assets/product_designer.gif",
         decorationClass: "bg-transparent border-b-4 border-dotted border-purple-500 h-1", // Dotted underline
         textClass: "font-semibold text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]", // High contrast text shadow
-        walkerClass: "!w-64 !h-36 rounded-xl rotate-1 grainy-filter", // Wide 16:9 box, grainy filter
+        walkerClass: "!w-40 !h-24 sm:!w-64 sm:!h-36 rounded-xl rotate-1 grainy-filter", // Wide 16:9 box, grainy filter
     },
     "India": {
         media: "/assets/india_temple.jpg",
         decorationClass: "bg-gradient-to-r from-orange-400 via-white to-green-400 h-[3px]", // Tricolor gradient
         textClass: "font-medium text-amber-400 drop-shadow-[0_0_8px_rgba(217,119,6,0.9)] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]", // Warm golden bronze feel
-        walkerClass: "!w-40 !h-40 rounded-3xl object-cover shadow-2xl border border-white/20 -rotate-2 brightness-[0.70] contrast-[0.85]", // Lowered brightness/contrast for readability
+        walkerClass: "!w-24 !h-24 sm:!w-40 sm:!h-40 rounded-3xl object-cover shadow-2xl border border-white/20 -rotate-2 brightness-[0.70] contrast-[0.85]", // Lowered brightness/contrast for readability
     },
     "cooking": {
         media: "/assets/cooking.gif",
         // Using static SVG file for reliability
         decorationClass: "bg-[url('/assets/wave.svg')] h-[12px] bg-bottom bg-repeat-x w-full",
         textClass: "font-medium text-amber-200 drop-shadow-[0_0_6px_rgba(252,211,77,0.6)]", // Warm culinary yellow/orange
-        walkerClass: "!w-48 !h-36 rounded-xl rotate-3 shadow-xl object-cover border border-white/20", // 4:3 GIF
+        walkerClass: "!w-32 !h-24 sm:!w-48 sm:!h-36 rounded-xl rotate-3 shadow-xl object-cover border border-white/20", // 4:3 GIF
     },
     "travelling": {
         media: "/assets/travelling.gif",
         decorationClass: "", // Handled by customDecoration
         textClass: "font-medium text-emerald-300 drop-shadow-[0_0_6px_rgba(110,231,183,0.5)]", // Earthy/fresh green
-        walkerClass: "!w-64 !h-36 rounded-2xl -rotate-1 shadow-2xl object-cover", // Set precise 16:9 box for ezgif download
+        walkerClass: "!w-40 !h-24 sm:!w-64 sm:!h-36 rounded-2xl -rotate-1 shadow-2xl object-cover", // Set precise 16:9 box for ezgif download
         duration: 5500, // Custom extended duration to let the EZgif loop complete entirely
         customDecoration: (isPassed) => <TravellingDecoration isVisible={isPassed} colorTheme="green" iconType="motorcycle" />
     },
@@ -71,7 +71,7 @@ const HIGHLIGHT_CONFIG: Record<string, HighlightConfig> = {
         decorationClass: "bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500 h-[2px]",
         textClass: "font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-400 animate-gradient bg-[length:200%_auto]",
         // Expanded size, shifted center far right over "haha!", tilted, and grainy
-        walkerClass: "!w-64 !h-32 !left-full !-translate-x-[40%] rounded-lg -rotate-6 grainy-filter",
+        walkerClass: "!w-40 !h-20 sm:!w-64 sm:!h-32 !left-full !-translate-x-[40%] rounded-lg -rotate-6 grainy-filter",
     },
     "I'm really here!": {
         media: "", // Moved to inline layout
@@ -246,7 +246,7 @@ export function Hero() {
                                     {/* The Walker Shape & Image */}
                                     <motion.div
                                         className={cn(
-                                            "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[70%] w-24 h-24 overflow-hidden border-2 border-white/20 shadow-2xl bg-black",
+                                            "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[70%] w-20 h-20 sm:w-24 sm:h-24 overflow-hidden border-2 border-white/20 shadow-2xl bg-black",
                                             activeConfig.walkerClass
                                         )}
                                         initial={{ opacity: 0.4, scale: 0.8 }}
@@ -279,7 +279,7 @@ export function Hero() {
                                     {/* Background Glow/Highlight behind text */}
                                     <motion.div
                                         className={cn(
-                                            "absolute -top-6 -left-4 -right-4 -bottom-6 -z-10 bg-neutral-800/50 block rounded-xl"
+                                            "absolute -top-4 -left-2 -right-2 -bottom-4 sm:-top-6 sm:-left-4 sm:-right-4 sm:-bottom-6 -z-10 bg-neutral-800/50 block rounded-xl"
                                         )}
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
@@ -316,7 +316,7 @@ export function Hero() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5, duration: 0.8 }}
-                    className="mt-16 text-2xl font-light text-neutral-400 md:text-3xl flex flex-wrap items-center gap-x-2 sm:gap-x-3 relative z-10"
+                    className="mt-12 sm:mt-16 text-xl font-light text-neutral-400 sm:text-2xl md:text-3xl flex flex-wrap items-center gap-x-2 sm:gap-x-3 relative z-10"
                 >
                     <span className="whitespace-nowrap opacity-50 px-1">I’m here to</span>
                     <div className="relative inline-flex h-[1.3em] overflow-hidden align-bottom">
@@ -365,7 +365,7 @@ export function Hero() {
                         </a>
 
                         {/* Inline Dwight GIF effortlessly locked into Flex Layout via permanent reserved space */}
-                        <div className="relative w-28 h-24 flex-shrink-0 hidden sm:block">
+                        <div className="relative w-16 h-14 sm:w-28 sm:h-24 flex-shrink-0">
                             <AnimatePresence>
                                 {(subheaderPhase === "text" || subheaderPhase === "end") && (
                                     <motion.div
