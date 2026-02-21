@@ -1,16 +1,13 @@
 "use client";
 import React, { useRef } from "react";
 import Image from "next/image";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 // Real Brand Logos
 const BRANDS = [
     { name: "Bank of Baroda", logo: "https://upload.wikimedia.org/wikipedia/commons/c/c4/Bank_of_Baroda_logo.svg" },
     { name: "Kotak Bank", logo: "https://upload.wikimedia.org/wikipedia/commons/8/86/Kotak_Mahindra_Bank_logo.svg" },
-    { name: "Joveo", logo: "https://mma.prnewswire.com/media/2529141/Joveo_Logo.jpg?w=200" }, // Using a clean JPG placeholder if SVG not directly hotlinkable, but let's try to find a better one or use a high-quality fallback. Actually, let's use a text fallback for Joveo if vector isn't easy, but the prompt asked for logos. Let's use standard placeholders with real names if hotlinks are unstable, but I will try to use reliable Wikimedia/CDN links where possible.
-    // Joveo doesn't have a reliable wiki svg. Let's use a placeholder for now but styled properly.
-    // Actually, wait, let's use the one found in search or a generic one.
+    { name: "Joveo", logo: "https://mma.prnewswire.com/media/2529141/Joveo_Logo.jpg?w=200" },
     { name: "Narayana Health", logo: "https://upload.wikimedia.org/wikipedia/en/8/87/Narayana_Health_logo.png" },
     // Duplicates for loop
     { name: "Bank of Baroda", logo: "https://upload.wikimedia.org/wikipedia/commons/c/c4/Bank_of_Baroda_logo.svg" },
@@ -21,10 +18,6 @@ const BRANDS = [
 
 export function AboutMe() {
     const containerRef = useRef<HTMLDivElement>(null);
-    const { scrollYProgress } = useScroll({
-        target: containerRef,
-        offset: ["start end", "end start"],
-    });
 
     return (
         <section
@@ -51,11 +44,12 @@ export function AboutMe() {
                                 }}
                             >
                                 <div className="w-24 h-12 relative grayscale opacity-60 hover:opacity-100 transition-opacity flex items-center justify-center p-2 bg-black/50 rounded-lg backdrop-blur-sm">
-                                    {/* Fallback for complex SVGs: simple img tag */}
-                                    <img
+                                    <Image
                                         src={brand.logo}
                                         alt={brand.name}
-                                        className="max-w-full max-h-full object-contain invert brightness-0 hover:invert-0 hover:brightness-100 transition-all duration-300"
+                                        fill
+                                        className="object-contain invert brightness-0 hover:invert-0 hover:brightness-100 transition-all duration-300"
+                                        unoptimized
                                     />
                                 </div>
                             </div>
@@ -85,7 +79,7 @@ export function AboutMe() {
                 {/* Right: Profile Image */}
                 <div className="relative h-48 w-48 shrink-0 overflow-hidden rounded-2xl border-2 border-white/10 shadow-lg md:h-64 md:w-64 rotate-3 transition-transform duration-500 group-hover:rotate-0 group-hover:scale-105">
                     <Image
-                        loader={({ src }) => `https://placehold.co/400x400/222/fff?text=Meet`}
+                        loader={() => `https://placehold.co/400x400/222/fff?text=Meet`}
                         src="placeholder"
                         alt="Meet Shah"
                         fill

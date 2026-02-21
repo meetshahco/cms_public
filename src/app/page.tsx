@@ -6,11 +6,14 @@ import { GlobalLoader } from "@/components/GlobalLoader";
 import { motion } from "framer-motion";
 
 import { AboutMe } from "@/components/AboutMe";
+import { ContactAnimationProvider } from "@/context/ContactAnimationContext";
+import { PlaneOverlay } from "@/components/PlaneOverlay";
 
 export default function Home() {
   return (
-    <>
+    <ContactAnimationProvider>
       <GlobalLoader />
+      <PlaneOverlay />
       <motion.main
         initial={{ filter: "grayscale(100%)" }}
         animate={{ filter: "grayscale(0%)" }}
@@ -25,6 +28,6 @@ export default function Home() {
           <p className="font-medium text-sm">© {new Date().getFullYear()} Meet Shah. Crafted with code & chaos.</p>
         </footer>
       </motion.main>
-    </>
+    </ContactAnimationProvider>
   );
 }
