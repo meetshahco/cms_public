@@ -1,9 +1,8 @@
-"use client";
-import { projects } from "@/lib/data";
 import { ProjectCard } from "./ProjectCard";
 import { motion } from "framer-motion";
+import type { Project } from "@/lib/cms/storage";
 
-export function ProjectGallery() {
+export function ProjectGallery({ projects }: { projects: Project[] }) {
     return (
         <section className="py-24 px-4 md:px-6">
             <div className="mx-auto max-w-7xl">

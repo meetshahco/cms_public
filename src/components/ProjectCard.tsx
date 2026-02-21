@@ -4,7 +4,7 @@ import { MouseEvent } from "react";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { Project } from "@/lib/data";
+import { Project } from "@/lib/cms/storage";
 import { cn } from "@/lib/utils";
 
 export function ProjectCard({ project }: { project: Project }) {
@@ -75,9 +75,11 @@ export function ProjectCard({ project }: { project: Project }) {
                                     {tag}
                                 </span>
                             ))}
-                            <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-sm text-blue-400 font-medium">
-                                {project.caseStudyCount} Case Studies
-                            </span>
+                            {project.caseStudyCount !== undefined && (
+                                <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-sm text-blue-400 font-medium">
+                                    {project.caseStudyCount} Case Studies
+                                </span>
+                            )}
                         </div>
                     </div>
 
