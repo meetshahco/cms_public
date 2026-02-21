@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 
 const ADMIN_DOMAIN = process.env.NEXT_PUBLIC_ADMIN_DOMAIN || "admin.meetshah.co";
 
@@ -10,7 +9,7 @@ function isAdminHost(hostname: string): boolean {
     );
 }
 
-export async function proxy(request: NextRequest) {
+export function proxy(request: NextRequest) {
     const hostname = request.headers.get("host") || "";
     const pathname = request.nextUrl.pathname;
 
@@ -21,33 +20,19 @@ export async function proxy(request: NextRequest) {
             return NextResponse.next();
         }
 
-        // API routes: allow through (they don't need path rewriting)
+        // API routes: allow through without rewriting
         if (pathname.startsWith("/api/")) {
             return NextResponse.next();
         }
 
-        // Prevent double-prefixing: if someone visits admin.meetshah.co/admin/...
-        // redirect them to admin.meetshah.co/... (strip the /admin prefix)
+        // Prevent double-prefixing: admin.meetshah.co/admin/... → admin.meetshah.co/...
         if (pathname.startsWith("/admin")) {
             const cleanPath = pathname.replace(/^\/admin/, "") || "/";
             return NextResponse.redirect(new URL(cleanPath, request.url));
         }
 
-        // Auth check — get session to protect admin routes
-        const isLoginPage = pathname === "/login";
-        const session = await auth();
-        const isLoggedIn = !!session?.user;
-
-        if (isLoginPage && isLoggedIn) {
-            return NextResponse.redirect(new URL("/", request.url));
-        }
-
-        if (!isLoginPage && !isLoggedIn) {
-            return NextResponse.redirect(new URL("/login", request.url));
-        }
-
-        // Rewrite the URL to the /admin route internally
-        // e.g., admin.meetshah.co/projects → serves /admin/projects
+        // Rewrite: admin.meetshah.co/projects → internally serves /admin/projects
+        // Auth is handled by next-auth's authorized callback on the rewritten path
         const adminPath = pathname === "/" ? "/admin" : `/admin${pathname}`;
         const url = request.nextUrl.clone();
         url.pathname = adminPath;
@@ -55,12 +40,11 @@ export async function proxy(request: NextRequest) {
         return NextResponse.rewrite(url);
     }
 
-    // ─── Main domain: block /admin access, redirect to subdomain ──
+    // ─── Main domain: redirect /admin/* to subdomain ──
     if (pathname.startsWith("/admin")) {
         const adminSubPath = pathname.replace(/^\/admin/, "") || "/";
-        const protocol = request.nextUrl.protocol;
         return NextResponse.redirect(
-            new URL(`${protocol}//${ADMIN_DOMAIN}${adminSubPath}`)
+            new URL(`https://${ADMIN_DOMAIN}${adminSubPath}`)
         );
     }
 
