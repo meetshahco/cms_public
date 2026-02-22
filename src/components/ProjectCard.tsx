@@ -4,7 +4,7 @@ import { MouseEvent } from "react";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { Project } from "@/lib/data";
+import { Project } from "@/lib/cms/storage";
 import { cn } from "@/lib/utils";
 
 export function ProjectCard({ project }: { project: Project }) {
@@ -41,26 +41,38 @@ export function ProjectCard({ project }: { project: Project }) {
                 />
 
                 {/* Left: GIF/Video Preview */}
-                <div className="relative aspect-video w-full overflow-hidden border-b border-white/5 md:border-b-0 md:border-r">
+                <div className="relative aspect-video w-full overflow-hidden border-b border-white/5 md:border-b-0 md:border-r bg-neutral-800">
                     {/* Video that plays on hover - Z-index higher to sit on top of image when active */}
-                    <div className="absolute inset-0 z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-                        <video
-                            src={project.video}
-                            muted
-                            loop
-                            playsInline
-                            autoPlay={true} // Autoplay for immediate feel, controlled by opacity
-                            className="h-full w-full object-cover scale-110 transition-transform duration-700"
-                        />
-                    </div>
+                    {project.video ? (
+                        <div className="absolute inset-0 z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+                            <video
+                                src={project.video}
+                                muted
+                                loop
+                                playsInline
+                                autoPlay={true}
+                                className="h-full w-full object-cover scale-110 transition-transform duration-700"
+                            />
+                        </div>
+                    ) : (
+                        <div className="absolute inset-0 z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100 flex items-center justify-center bg-blue-500/10">
+                            <span className="text-blue-400 text-xs font-medium uppercase tracking-widest">No Preview Video</span>
+                        </div>
+                    )}
 
                     {/* Fallback Image */}
-                    <Image
-                        src={project.image}
-                        alt={project.title}
-                        fill
-                        className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
+                    {project.image ? (
+                        <Image
+                            src={project.image}
+                            alt={project.title}
+                            fill
+                            className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                    ) : (
+                        <div className="absolute inset-0 flex items-center justify-center bg-neutral-800">
+                            <ArrowRight className="w-8 h-8 text-neutral-700" />
+                        </div>
+                    )}
                 </div>
 
                 {/* Right: Details */}
@@ -75,9 +87,11 @@ export function ProjectCard({ project }: { project: Project }) {
                                     {tag}
                                 </span>
                             ))}
-                            <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-sm text-blue-400 font-medium">
-                                {project.caseStudyCount} Case Studies
-                            </span>
+                            {project.caseStudyCount !== undefined && (
+                                <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-sm text-blue-400 font-medium">
+                                    {project.caseStudyCount} Case Studies
+                                </span>
+                            )}
                         </div>
                     </div>
 

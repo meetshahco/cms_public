@@ -1,33 +1,36 @@
-"use client";
 import { Navbar } from "@/components/Navbar";
+export const dynamic = "force-dynamic";
 import { Hero } from "@/components/Hero";
 import { ProjectGallery } from "@/components/ProjectGallery";
 import { GlobalLoader } from "@/components/GlobalLoader";
-import { motion } from "framer-motion";
-
+import { HomeContainer } from "@/components/HomeContainer";
 import { AboutMe } from "@/components/AboutMe";
 import { ContactAnimationProvider } from "@/context/ContactAnimationContext";
 import { PlaneOverlay } from "@/components/PlaneOverlay";
+import { listProjects, getSettings } from "@/lib/cms/storage";
 
-export default function Home() {
+export default async function Home() {
+  const [projects, settings] = await Promise.all([
+    listProjects(),
+    getSettings()
+  ]);
+
+  // Filter only published and starred projects for the homepage gallery
+  const featuredProjects = projects.filter(p => p.status === 'published' && p.starred);
+
   return (
     <ContactAnimationProvider>
       <GlobalLoader />
       <PlaneOverlay />
-      <motion.main
-        initial={{ filter: "grayscale(100%)" }}
-        animate={{ filter: "grayscale(0%)" }}
-        transition={{ delay: 2.5, duration: 1.5, ease: "easeOut" }} // Sync with loader
-        className="min-h-screen bg-black selection:bg-blue-500/30"
-      >
-        <Navbar />
+      <HomeContainer>
+        <Navbar siteTitle={settings.siteTitle} />
         <Hero />
-        <ProjectGallery />
+        <ProjectGallery projects={featuredProjects} />
         <AboutMe />
         <footer className="py-24 text-center text-neutral-600 border-t border-neutral-900">
-          <p className="font-medium text-sm">© {new Date().getFullYear()} Meet Shah. Crafted with code & chaos.</p>
+          <p className="font-medium text-sm">© {new Date().getFullYear()} {settings.siteTitle || "Meet Shah"}. Crafted with code & chaos.</p>
         </footer>
-      </motion.main>
+      </HomeContainer>
     </ContactAnimationProvider>
   );
 }

@@ -6,7 +6,7 @@
  * On the main domain, paths are prefixed: /admin/projects, /admin/settings, etc.
  */
 
-const ADMIN_DOMAIN = process.env.NEXT_PUBLIC_ADMIN_DOMAIN || "";
+const ADMIN_DOMAIN = process.env.NEXT_PUBLIC_ADMIN_DOMAIN || "admin.meetshah.co";
 
 /**
  * Check if the current window location is the admin subdomain.
@@ -14,9 +14,12 @@ const ADMIN_DOMAIN = process.env.NEXT_PUBLIC_ADMIN_DOMAIN || "";
  */
 export function isAdminSubdomain(): boolean {
     if (typeof window === "undefined") return false;
+    const hostname = window.location.hostname;
     return (
-        window.location.host === ADMIN_DOMAIN ||
-        window.location.hostname === "admin.localhost"
+        hostname === ADMIN_DOMAIN ||
+        hostname === "admin.localhost" ||
+        hostname.endsWith(`.${ADMIN_DOMAIN}`) ||
+        hostname.includes("admin.meetshah.co")
     );
 }
 

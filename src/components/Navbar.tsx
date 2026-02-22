@@ -48,7 +48,7 @@ function NavItem({ href, label, isActive }: { href: string; label: string; isAct
     );
 }
 
-export function Navbar() {
+export function Navbar({ siteTitle = "Meet Shah" }: { siteTitle?: string }) {
     const { isContactCta, contactRef } = useContactAnimation();
     const pathname = usePathname();
     const [isContactHovered, setIsContactHovered] = useState(false);
@@ -62,7 +62,7 @@ export function Navbar() {
                     </Link>
                 ) : (
                     <Link href="/" className="text-lg sm:text-xl font-bold text-white font-heading tracking-tight drop-shadow-md">
-                        Meet Shah
+                        {siteTitle}
                     </Link>
                 )}
                 <div className="flex items-center gap-0 sm:gap-6">
