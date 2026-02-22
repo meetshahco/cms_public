@@ -29,7 +29,7 @@ export default async function Home() {
         <ProjectGallery projects={featuredProjects} />
         <AboutMe />
         <footer className="py-24 text-center text-neutral-600 border-t border-neutral-900">
-          <p className="font-medium text-sm">© {new Date().getFullYear()} {settings.siteTitle || "Meet Shah"}. Crafted with code & chaos.</p>
+          <p className="font-medium text-sm">© {new Date().getFullYear()} {settings.siteTitle || "Meet Shah"} | Portfolio Redesign V2. Crafted with code & chaos.</p>
         </footer>
       </HomeContainer>
     </ContactAnimationProvider>
