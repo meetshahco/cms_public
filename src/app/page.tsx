@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/Navbar";
 export const dynamic = "force-dynamic";
+
 import { Hero } from "@/components/Hero";
 import { ProjectGallery } from "@/components/ProjectGallery";
 import { GlobalLoader } from "@/components/GlobalLoader";
