@@ -124,7 +124,7 @@ export async function listProjects(): Promise<Project[]> {
 }
 
 export async function listArchivedProjects(): Promise<Project[]> {
-    if (useKV) {
+    if (shouldUseKV()) {
         const projectsMap = await kv.hgetall(KV_KEYS.PROJECTS);
         if (!projectsMap) return [];
         const projects = Object.values(projectsMap) as Project[];
