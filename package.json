@@ -6,8 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "cms:migrate": "npx tsx src/lib/cms/migrate.ts"
+    "lint": "eslint"
   },
   "dependencies": {
     "@tiptap/core": "^2.27.2",
