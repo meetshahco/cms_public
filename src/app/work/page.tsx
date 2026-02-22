@@ -1,39 +1,13 @@
-"use client";
+import { listProjects } from "@/lib/cms/storage";
+export const dynamic = "force-dynamic";
+import { WorkClient } from "./WorkClient";
 
-import { motion } from "framer-motion";
-import { Navbar } from "@/components/Navbar";
-import { ContactAnimationProvider } from "@/context/ContactAnimationContext";
+export default async function WorkPage() {
+    // Fetch all projects from the CMS
+    const projects = await listProjects();
 
-export default function WorkPage() {
-    return (
-        <ContactAnimationProvider>
-            <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 sm:p-12 relative overflow-hidden">
-                <Navbar />
+    // Filter only published projects for the front-end
+    const publishedProjects = projects.filter(p => p.status === 'published');
 
-                {/* Background ambient glow matching hero */}
-                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px] pointer-events-none" />
-                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
-
-                <div className="w-full max-w-2xl relative z-10 flex flex-col items-center text-center">
-                    {/* Coming Soon Header */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.6, delay: 0.1 }}
-                        className="mb-16"
-                    >
-                        <div className="inline-block rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium text-neutral-300 backdrop-blur-md mb-6 border border-white/5">
-                            Coming Soon
-                        </div>
-                        <h1 className="text-4xl sm:text-6xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60 mb-4">
-                            Selected Work.
-                        </h1>
-                        <p className="text-lg text-neutral-400 max-w-md mx-auto">
-                            I&apos;m currently putting together case studies of my best projects. Check back soon for deep dives into my design process.
-                        </p>
-                    </motion.div>
-                </div>
-            </main>
-        </ContactAnimationProvider>
-    );
+    return <WorkClient projects={publishedProjects} />;
 }

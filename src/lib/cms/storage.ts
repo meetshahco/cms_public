@@ -7,7 +7,9 @@ const PROJECTS_DIR = path.join(CONTENT_DIR, "projects");
 const CASE_STUDIES_DIR = path.join(CONTENT_DIR, "case-studies");
 
 // Check if we should use KV based on environment variables
-const useKV = !!process.env.KV_URL;
+function shouldUseKV() {
+    return !!process.env.KV_URL;
+}
 
 // KV Keys
 const KV_KEYS = {
@@ -73,7 +75,7 @@ export type SettingsInput = Partial<Settings>;
 
 // ─── Helper ───────────────────────────────────────────────
 function ensureDir(dir: string) {
-    if (useKV) return;
+    if (shouldUseKV()) return;
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
     }
@@ -90,10 +92,10 @@ function slugify(text: string): string {
 async function uniqueSlug(base: string, dir: string, kvKey?: string): Promise<string> {
     const slug = slugify(base) || "untitled";
 
-    if (useKV && kvKey) {
+    if (shouldUseKV() && kvKey) {
         const existing = await kv.hget(kvKey, slug);
         if (!existing) return slug;
-    } else if (!useKV) {
+    } else if (!shouldUseKV()) {
         const jsonPath = path.join(dir, `${slug}.json`);
         if (!fs.existsSync(jsonPath)) return slug;
     }
@@ -105,7 +107,7 @@ async function uniqueSlug(base: string, dir: string, kvKey?: string): Promise<st
 
 // ─── Project CRUD ─────────────────────────────────────────
 export async function listProjects(): Promise<Project[]> {
-    if (useKV) {
+    if (shouldUseKV()) {
         const projectsMap = await kv.hgetall(KV_KEYS.PROJECTS);
         if (!projectsMap) return [];
         const projects = Object.values(projectsMap) as Project[];
@@ -139,7 +141,7 @@ export async function listArchivedProjects(): Promise<Project[]> {
 }
 
 export async function getProject(id: string): Promise<Project | null> {
-    if (useKV) {
+    if (shouldUseKV()) {
         return await kv.hget(KV_KEYS.PROJECTS, id);
     }
 
@@ -150,7 +152,7 @@ export async function getProject(id: string): Promise<Project | null> {
 }
 
 export async function getProjectContent(id: string): Promise<string> {
-    if (useKV) {
+    if (shouldUseKV()) {
         return (await kv.get(KV_KEYS.content(id))) as string || "";
     }
 
@@ -172,7 +174,7 @@ export async function createProject(input: ProjectInput, content?: string): Prom
         updatedAt: now,
     };
 
-    if (useKV) {
+    if (shouldUseKV()) {
         await kv.hset(KV_KEYS.PROJECTS, { [id]: project });
         if (content !== undefined) {
             await kv.set(KV_KEYS.content(id), content);
@@ -199,7 +201,7 @@ export async function updateProject(id: string, updates: Partial<ProjectInput>, 
         updatedAt: new Date().toISOString(),
     };
 
-    if (useKV) {
+    if (shouldUseKV()) {
         await kv.hset(KV_KEYS.PROJECTS, { [id]: updated });
         if (content !== undefined) {
             await kv.set(KV_KEYS.content(id), content);
@@ -228,7 +230,7 @@ export async function deleteProject(id: string): Promise<boolean> {
 }
 
 export async function permanentlyDeleteProject(id: string): Promise<boolean> {
-    if (useKV) {
+    if (shouldUseKV()) {
         await kv.hdel(KV_KEYS.PROJECTS, id);
         await kv.del(KV_KEYS.content(id));
         return true;
@@ -251,7 +253,7 @@ export async function toggleProjectStar(id: string): Promise<Project | null> {
 export async function reorderProjects(ids: string[]): Promise<void> {
     const now = new Date().toISOString();
 
-    if (useKV) {
+    if (shouldUseKV()) {
         const projectsMap = await kv.hgetall(KV_KEYS.PROJECTS);
         if (!projectsMap) return;
 
@@ -279,7 +281,7 @@ export async function reorderProjects(ids: string[]): Promise<void> {
 
 // ─── Case Study CRUD ──────────────────────────────────────
 export async function listCaseStudies(parentProject?: string): Promise<CaseStudy[]> {
-    if (useKV) {
+    if (shouldUseKV()) {
         const studiesMap = await kv.hgetall(KV_KEYS.CASE_STUDIES);
         if (!studiesMap) return [];
         let studies = Object.values(studiesMap) as CaseStudy[];
@@ -304,7 +306,7 @@ export async function listCaseStudies(parentProject?: string): Promise<CaseStudy
 }
 
 export async function getCaseStudy(slug: string): Promise<CaseStudy | null> {
-    if (useKV) {
+    if (shouldUseKV()) {
         return await kv.hget(KV_KEYS.CASE_STUDIES, slug);
     }
 
@@ -315,7 +317,7 @@ export async function getCaseStudy(slug: string): Promise<CaseStudy | null> {
 }
 
 export async function getCaseStudyContent(slug: string): Promise<string> {
-    if (useKV) {
+    if (shouldUseKV()) {
         return (await kv.get(KV_KEYS.content(slug))) as string || "";
     }
 
@@ -334,7 +336,7 @@ export async function createCaseStudy(input: CaseStudyInput, content: string): P
         order: existing.length,
     };
 
-    if (useKV) {
+    if (shouldUseKV()) {
         await kv.hset(KV_KEYS.CASE_STUDIES, { [slug]: caseStudy });
         await kv.set(KV_KEYS.content(slug), content);
     } else {
@@ -362,7 +364,7 @@ export async function updateCaseStudy(
         slug, // don't allow slug change
     };
 
-    if (useKV) {
+    if (shouldUseKV()) {
         await kv.hset(KV_KEYS.CASE_STUDIES, { [slug]: updated });
         if (content !== undefined) {
             await kv.set(KV_KEYS.content(slug), content);
@@ -393,7 +395,7 @@ export async function deleteCaseStudy(slug: string): Promise<boolean> {
 }
 
 export async function permanentlyDeleteCaseStudy(slug: string): Promise<boolean> {
-    if (useKV) {
+    if (shouldUseKV()) {
         await kv.hdel(KV_KEYS.CASE_STUDIES, slug);
         await kv.del(KV_KEYS.content(slug));
         return true;
@@ -435,7 +437,7 @@ const DEFAULT_SETTINGS: Settings = {
 };
 
 export async function getSettings(): Promise<Settings> {
-    if (useKV) {
+    if (shouldUseKV()) {
         const settings = await kv.get<Settings>(KV_KEYS.SETTINGS);
         return settings || DEFAULT_SETTINGS;
     }
@@ -460,7 +462,7 @@ export async function updateSettings(updates: SettingsInput): Promise<Settings> 
         },
     };
 
-    if (useKV) {
+    if (shouldUseKV()) {
         await kv.set(KV_KEYS.SETTINGS, updated);
     } else {
         fs.writeFileSync(SETTINGS_FILE, JSON.stringify(updated, null, 2));

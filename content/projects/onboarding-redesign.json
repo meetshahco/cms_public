@@ -1,0 +1,28 @@
+{
+  "title": "Onboarding Redesign",
+  "category": "FinTech",
+  "description": "How we reduced drop-off by 40% through a streamlined, multi-step onboarding experience.",
+  "tags": [
+    "Product Design",
+    "React",
+    "Framer Motion"
+  ],
+  "image": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80",
+  "video": "",
+  "metrics": [
+    {
+      "label": "Conversion",
+      "value": "+40%"
+    },
+    {
+      "label": "Duration",
+      "value": "3 Months"
+    }
+  ],
+  "starred": true,
+  "status": "published",
+  "id": "onboarding-redesign",
+  "order": 0,
+  "createdAt": "2026-02-22T00:14:52.975Z",
+  "updatedAt": "2026-02-22T00:14:52.975Z"
+}
