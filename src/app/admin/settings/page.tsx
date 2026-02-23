@@ -17,6 +17,7 @@ interface Settings {
     siteTitle: string;
     siteUrl: string;
     metaDescription: string;
+    favicon?: string;
     socialLinks: {
         twitter: string;
         github: string;
@@ -108,8 +109,8 @@ export default function SettingsPage() {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`pb-4 text-sm font-medium transition-all relative flex items-center gap-2 ${activeTab === tab.id
-                                ? "text-white"
-                                : "text-neutral-500 hover:text-neutral-300"
+                            ? "text-white"
+                            : "text-neutral-500 hover:text-neutral-300"
                             }`}
                     >
                         <tab.icon className="w-3.5 h-3.5" />
@@ -125,9 +126,9 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 gap-6">
                 {activeTab === "general" && (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        <section className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-4">
+                        <section className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-6">
                             <h2 className="text-base font-semibold text-white">Site Information</h2>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Site Title</label>
                                     <input
@@ -155,6 +156,52 @@ export default function SettingsPage() {
                                     value={settings.metaDescription}
                                     onChange={(e) => setSettings({ ...settings, metaDescription: e.target.value })}
                                 />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-medium text-neutral-400 uppercase tracking-wider block mb-2">Favicon</label>
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                        {settings.favicon ? (
+                                            <img src={settings.favicon} alt="Favicon preview" className="w-8 h-8 object-contain" />
+                                        ) : (
+                                            <Globe className="w-6 h-6 text-neutral-500" />
+                                        )}
+                                    </div>
+                                    <div className="flex-1 flex items-center gap-3">
+                                        <input
+                                            type="text"
+                                            placeholder="Paste image URL..."
+                                            value={settings.favicon || ""}
+                                            onChange={(e) => setSettings({ ...settings, favicon: e.target.value })}
+                                            className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-white/20 transition-all font-medium"
+                                        />
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                accept="image/png, image/svg+xml, image/x-icon"
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                title="Upload Favicon"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        const reader = new FileReader();
+                                                        reader.onloadend = () => {
+                                                            setSettings({ ...settings, favicon: reader.result as string });
+                                                        };
+                                                        reader.readAsDataURL(file);
+                                                    }
+                                                }}
+                                            />
+                                            <button
+                                                type="button"
+                                                className="whitespace-nowrap px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-medium transition-colors border border-white/5"
+                                            >
+                                                Upload File
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p className="text-xs text-neutral-500 mt-2">Upload an SVG, PNG, or ICO file from your computer (max 100kb recommended).</p>
                             </div>
                         </section>
 

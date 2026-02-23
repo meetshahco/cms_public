@@ -51,6 +51,7 @@ export interface Settings {
     siteTitle: string;
     siteUrl: string;
     metaDescription: string;
+    favicon?: string; // URL or base64 data for custom favicon
     socialLinks: {
         twitter: string;
         github: string;
@@ -270,9 +271,10 @@ export async function getStats() {
 
 // ─── Settings ─────────────────────────────────────────────
 const DEFAULT_SETTINGS: Settings = {
-    siteTitle: "Meet Shah | Product Designer",
+    siteTitle: "Meet Shah",
     siteUrl: "https://meetshah.design",
     metaDescription: "Product designer and developer based in India.",
+    favicon: "", // Default empty
     socialLinks: {
         twitter: "https://twitter.com/meet",
         github: "https://github.com/meet",
