@@ -1,5 +1,5 @@
 "use client";
-import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
+import { motion, useMotionTemplate, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { MouseEvent } from "react";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
@@ -8,19 +8,50 @@ import { Project } from "@/lib/cms/storage";
 import { cn } from "@/lib/utils";
 
 export function ProjectCard({ project }: { project: Project }) {
+    // Spotlight position
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
 
+    // 3D tilt tracking (-0.5 to 0.5)
+    const xPos = useMotionValue(0);
+    const yPos = useMotionValue(0);
+
+    const xSpring = useSpring(xPos, { stiffness: 300, damping: 40 });
+    const ySpring = useSpring(yPos, { stiffness: 300, damping: 40 });
+
+    const rotateX = useTransform(ySpring, [-0.5, 0.5], ["3deg", "-3deg"]);
+    const rotateY = useTransform(xSpring, [-0.5, 0.5], ["-3deg", "3deg"]);
+
     function handleMouseMove({ currentTarget, clientX, clientY }: MouseEvent) {
-        const { left, top } = currentTarget.getBoundingClientRect();
+        const { left, top, width, height } = currentTarget.getBoundingClientRect();
+
+        // Spotlight
         mouseX.set(clientX - left);
         mouseY.set(clientY - top);
+
+        // 3D Tilt
+        const xPct = (clientX - left) / width - 0.5;
+        const yPct = (clientY - top) / height - 0.5;
+
+        xPos.set(xPct);
+        yPos.set(yPct);
+    }
+
+    function handleMouseLeave() {
+        xPos.set(0);
+        yPos.set(0);
     }
 
     return (
         <Link href={`/work/${project.id}`}>
-            <div
+            <motion.div
                 onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+                style={{
+                    rotateX,
+                    rotateY,
+                    transformPerspective: 1200,
+                }}
                 className={cn(
                     "group relative w-full cursor-pointer overflow-hidden rounded-3xl border border-white/10 bg-neutral-900 transition-colors hover:border-white/20",
                     "flex flex-col md:grid md:grid-cols-2" // Responsive layout
@@ -102,7 +133,7 @@ export function ProjectCard({ project }: { project: Project }) {
                         </div>
                     </div>
                 </div>
-            </div>
+            </motion.div>
         </Link>
     );
 }

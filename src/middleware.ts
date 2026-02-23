@@ -81,6 +81,11 @@ export default auth((request) => {
 
     // ─── Main domain: redirect /admin access to subdomain ──
     if (!isAdminSubdomain && pathname.startsWith("/admin")) {
+        // In local development, don't force redirect to production admin domain
+        if (currentHost.includes("localhost") || currentHost.includes("127.0.0.1") || currentHost.startsWith("192.168.")) {
+            return;
+        }
+
         const adminSubPath = pathname.replace(/^\/admin/, "") || "/";
         return NextResponse.redirect(
             new URL(`https://${ADMIN_DOMAIN}${adminSubPath}`)

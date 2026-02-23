@@ -8,7 +8,11 @@ import Link from "@tiptap/extension-link";
 import Youtube from "@tiptap/extension-youtube";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
-import Highlight from "@tiptap/extension-highlight";
+import { Highlight } from "@tiptap/extension-highlight";
+import Gapcursor from "@tiptap/extension-gapcursor";
+import Dropcursor from "@tiptap/extension-dropcursor";
+import { MetricsBlock } from "./extensions/Metrics";
+import { MockupsBlock } from "./extensions/Mockups";
 import { useState, useCallback, useRef } from "react";
 import {
     Bold,
@@ -32,6 +36,9 @@ import {
     FileCode,
     Figma,
     Upload,
+    Activity,
+    X,
+    MonitorCheck,
 } from "lucide-react";
 
 interface EditorProps {
@@ -50,6 +57,8 @@ const slashItems = [
     { label: "Quote", description: "Blockquote", icon: MessageSquareQuote, command: "blockquote" },
     { label: "Divider", description: "Horizontal rule", icon: Minus, command: "hr" },
     { label: "Code Block", description: "Code snippet", icon: FileCode, command: "codeBlock" },
+    { label: "Metrics Grid", description: "Add key stats", icon: Activity, command: "metricsBlock" },
+    { label: "Mockups", description: "Device frames & carousels", icon: MonitorCheck, command: "mockupsBlock" },
     { label: "Image / GIF", description: "Upload or drag an image", icon: ImageIcon, command: "image" },
     { label: "Video", description: "Upload a video file", icon: Upload, command: "videoUpload" },
     { label: "YouTube", description: "Embed a YouTube video", icon: YoutubeIcon, command: "youtube" },
@@ -66,13 +75,11 @@ async function uploadFile(file: File): Promise<{ url: string; type: string } | n
         const res = await fetch("/api/cms/upload", { method: "POST", body: formData });
         if (!res.ok) {
             const err = await res.json();
-            alert(err.error || "Upload failed");
-            return null;
+            throw new Error(err.error || "Upload failed");
         }
         return await res.json();
-    } catch {
-        alert("Upload failed");
-        return null;
+    } catch (e: any) {
+        throw new Error(e.message || "Upload failed");
     }
 }
 
@@ -86,6 +93,7 @@ export default function Editor({
     const [slashPos, setSlashPos] = useState({ top: 0, left: 0 });
     const [selectedSlashIndex, setSelectedSlashIndex] = useState(0);
     const [uploading, setUploading] = useState(false);
+    const [uploadError, setUploadError] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const slashRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -102,6 +110,10 @@ export default function Editor({
             Underline,
             TextAlign.configure({ types: ["heading", "paragraph"] }),
             Highlight.configure({ multicolor: true }),
+            Gapcursor,
+            Dropcursor.configure({ color: "#60a5fa", width: 2 }),
+            MetricsBlock,
+            MockupsBlock,
         ],
         content,
         editorProps: {
@@ -196,22 +208,28 @@ export default function Editor({
         async (file: File) => {
             if (!editor) return;
             setUploading(true);
+            setUploadError(null);
 
-            const result = await uploadFile(file);
-            if (result) {
-                if (result.type === "video") {
-                    editor
-                        .chain()
-                        .focus()
-                        .insertContent(
-                            `<div data-type="video-embed" class="video-embed"><video src="${result.url}" controls style="width:100%;border-radius:12px;"></video></div>`
-                        )
-                        .run();
-                } else {
-                    editor.chain().focus().setImage({ src: result.url }).run();
+            try {
+                const result = await uploadFile(file);
+                if (result) {
+                    if (result.type === "video") {
+                        editor
+                            .chain()
+                            .focus()
+                            .insertContent(
+                                `<div data-type="video-embed" class="video-embed"><video src="${result.url}" controls style="width:100%;border-radius:12px;"></video></div>`
+                            )
+                            .run();
+                    } else {
+                        editor.chain().focus().setImage({ src: result.url }).run();
+                    }
                 }
+            } catch (err: any) {
+                setUploadError(err.message || "Upload failed");
+            } finally {
+                setUploading(false);
             }
-            setUploading(false);
         },
         [editor]
     );
@@ -292,6 +310,12 @@ export default function Editor({
                     break;
                 case "codeBlock":
                     editor.chain().focus().toggleCodeBlock().run();
+                    break;
+                case "metricsBlock":
+                    editor.chain().focus().insertContent('<div data-type="metrics-block"></div>').run();
+                    break;
+                case "mockupsBlock":
+                    editor.chain().focus().insertContent('<div data-type="mockups-block"></div>').run();
                     break;
                 case "image":
                     openFilePicker("image");
@@ -417,6 +441,16 @@ export default function Editor({
                 </div>
             )}
 
+            {/* Upload error overlay */}
+            {uploadError && (
+                <div className="absolute bottom-4 right-4 z-50 bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl flex items-center gap-3 shadow-2xl backdrop-blur-xl animate-in fade-in duration-200">
+                    <span className="text-sm font-medium">{uploadError}</span>
+                    <button onClick={() => setUploadError(null)} className="p-1 hover:bg-red-500/20 rounded-lg transition-colors">
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
+
             {/* Drag overlay */}
             {isDragging && (
                 <div className="absolute inset-0 z-40 rounded-xl border-2 border-dashed border-blue-400/50 bg-blue-500/5 flex items-center justify-center pointer-events-none">
@@ -434,7 +468,7 @@ export default function Editor({
                 <BubbleMenu
                     editor={editor}
                     tippyOptions={{ duration: 150 }}
-                    className="flex items-center gap-0.5 rounded-lg bg-[#1a1a1a] border border-white/10 p-1 shadow-2xl"
+                    className="flex items-center gap-0.5 rounded-xl bg-[#1a1a1a]/90 backdrop-blur-xl border border-white/10 p-1.5 shadow-2xl"
                 >
                     <ToolbarButton
                         active={editor.isActive("bold")}
@@ -496,28 +530,28 @@ export default function Editor({
             {showSlash && filteredSlashItems.length > 0 && (
                 <div
                     ref={slashRef}
-                    className="absolute z-50 w-72 max-h-80 overflow-y-auto rounded-xl bg-[#1a1a1a] border border-white/10 shadow-2xl py-1"
+                    className="absolute z-50 w-72 max-h-80 overflow-y-auto rounded-2xl bg-[#1a1a1a]/90 backdrop-blur-xl border border-white/10 shadow-2xl py-2 scrollbar-thin scrollbar-thumb-white/10"
                     style={{ top: slashPos.top, left: slashPos.left }}
                 >
-                    <div className="px-3 py-2 text-[10px] text-neutral-500 uppercase tracking-wider font-medium">
-                        Blocks
+                    <div className="px-4 pb-2 mb-2 border-b border-white/5 text-[10px] text-neutral-500 uppercase tracking-wider font-semibold">
+                        Basic Blocks
                     </div>
                     {filteredSlashItems.map((item, i) => (
                         <button
                             key={item.command}
-                            className={`w-full flex items-center gap-3 px-3 py-2 text-left text-sm transition-colors ${i === selectedSlashIndex
-                                    ? "bg-white/10 text-white"
-                                    : "text-neutral-400 hover:bg-white/5 hover:text-white"
+                            className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${i === selectedSlashIndex
+                                ? "bg-white/10 text-white"
+                                : "text-neutral-400 hover:bg-white/5 hover:text-white"
                                 }`}
                             onClick={() => executeSlashCommand(item.command)}
                             onMouseEnter={() => setSelectedSlashIndex(i)}
                         >
-                            <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${i === selectedSlashIndex ? "bg-white/10 text-white" : "bg-white/5 text-neutral-400"}`}>
                                 <item.icon className="w-4 h-4" />
                             </div>
                             <div>
-                                <div className="font-medium text-sm">{item.label}</div>
-                                <div className="text-[11px] text-neutral-500">
+                                <div className={`font-medium text-sm ${i === selectedSlashIndex ? "text-white" : "text-neutral-200"}`}>{item.label}</div>
+                                <div className={`text-[11px] ${i === selectedSlashIndex ? "text-neutral-300" : "text-neutral-500"}`}>
                                     {item.description}
                                 </div>
                             </div>
@@ -544,8 +578,11 @@ export default function Editor({
         .ProseMirror h2 { font-size: 1.5rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem; line-height: 1.3; }
         .ProseMirror h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1.25rem; margin-bottom: 0.5rem; line-height: 1.4; }
         .ProseMirror p { margin-bottom: 0.75rem; line-height: 1.7; color: #d4d4d4; }
-        .ProseMirror ul, .ProseMirror ol { padding-left: 1.5rem; margin-bottom: 0.75rem; }
+        .ProseMirror ul { padding-left: 1.5rem; margin-bottom: 0.75rem; list-style-type: disc; }
+        .ProseMirror ol { padding-left: 1.5rem; margin-bottom: 0.75rem; list-style-type: decimal; }
         .ProseMirror li { margin-bottom: 0.25rem; color: #d4d4d4; }
+        .ProseMirror ul ul, .ProseMirror ol ul { list-style-type: circle; margin-bottom: 0; }
+        .ProseMirror ol ol, .ProseMirror ul ol { list-style-type: lower-alpha; margin-bottom: 0; }
         .ProseMirror blockquote { border-left: 3px solid #404040; padding-left: 1rem; margin: 1rem 0; color: #a3a3a3; font-style: italic; }
         .ProseMirror code { background: rgba(255,255,255,0.1); border-radius: 4px; padding: 2px 6px; font-size: 0.875em; color: #f0abfc; }
         .ProseMirror pre { background: #111; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 1rem; margin: 1rem 0; overflow-x: auto; }
@@ -577,9 +614,9 @@ function ToolbarButton({
         <button
             onClick={onClick}
             title={title}
-            className={`p-1.5 rounded-md transition-colors ${active
-                    ? "bg-white/10 text-white"
-                    : "text-neutral-400 hover:bg-white/5 hover:text-white"
+            className={`p-1.5 rounded-lg transition-colors ${active
+                ? "bg-blue-500/20 text-blue-400"
+                : "text-neutral-400 hover:bg-white/10 hover:text-white"
                 }`}
         >
             {children}

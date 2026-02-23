@@ -26,6 +26,19 @@ const Editor = dynamic(() => import("@/components/editor/Editor"), {
     ),
 });
 
+// Helper for Cover Image Uploads
+async function uploadFile(file: File): Promise<{ url: string; type: string } | null> {
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+        const res = await fetch("/api/cms/upload", { method: "POST", body: formData });
+        if (!res.ok) return null;
+        return await res.json();
+    } catch {
+        return null;
+    }
+}
+
 // ─── Types ──────────────────────────────────────
 interface ProjectData {
     id: string;
@@ -224,9 +237,9 @@ export default function ProjectWorkspace() {
     }
 
     return (
-        <div className="flex h-full">
-            {/* ─── Left Nav ────────────────────────────────── */}
-            <div className="w-56 flex-shrink-0 border-r border-white/[0.06] flex flex-col">
+        <div className="flex flex-col md:flex-row h-full">
+            {/* ─── Desktop Left Nav ──────────────────────── */}
+            <div className="hidden md:flex w-56 flex-shrink-0 border-r border-white/[0.06] flex-col">
                 {/* Back link */}
                 <div className="px-4 pt-4 pb-3">
                     <Link
@@ -318,16 +331,66 @@ export default function ProjectWorkspace() {
 
             {/* ─── Main Content ────────────────────────────── */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                {/* Top action bar */}
-                <div className="flex items-center justify-between px-6 py-3 border-b border-white/[0.06] flex-shrink-0">
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm text-neutral-400">{currentTitle}</span>
+
+                {/* ─── Unified Responsive Top Header ─── */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-0 px-4 md:px-6 py-4 md:py-3 border-b border-white/[0.06] flex-shrink-0 bg-[#0a0a0a] md:bg-transparent">
+                    {/* Mobile 1st Line: Back Button */}
+                    <div className="md:hidden">
+                        <Link
+                            href={adminPath("/projects")}
+                            className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-white transition-colors"
+                        >
+                            <ArrowLeft className="w-3 h-3" />
+                            All Projects
+                        </Link>
                     </div>
-                    <div className="flex items-center gap-2">
+
+                    {/* Desktop Left / Mobile 2nd Line: Title / Dropdown Nav */}
+                    <div className="flex items-center w-full md:w-auto">
+                        <span className="hidden md:inline text-sm text-neutral-400">{currentTitle}</span>
+
+                        <div className="md:hidden flex flex-col w-full gap-2">
+                            <div className="relative w-full">
+                                <select
+                                    value={activePanel}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (val === "project") {
+                                            setActivePanel("project");
+                                        } else {
+                                            switchToCs(val);
+                                        }
+                                    }}
+                                    className="w-full appearance-none bg-white/[0.04] border border-white/10 text-white text-sm font-semibold rounded-xl px-4 py-2.5 outline-none focus:border-white/20 transition-colors"
+                                >
+                                    <option value="project" className="bg-[#111] text-white">Project Details ({project?.status === "published" ? "Live" : "Draft"})</option>
+                                    {caseStudies.map((cs) => {
+                                        const effectiveStatus = project?.status === "draft" ? "draft" : cs.status;
+                                        return (
+                                            <option key={cs.slug} value={cs.slug} className="bg-[#111] text-white">
+                                                {cs.title} ({effectiveStatus === "published" ? "Live" : "Draft"})
+                                            </option>
+                                        );
+                                    })}
+                                </select>
+                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
+                            </div>
+                            <button
+                                onClick={createCaseStudy}
+                                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-white/20 text-neutral-300 text-sm font-medium hover:border-white/40 hover:text-white transition-all bg-white/[0.02] w-full"
+                            >
+                                <Plus className="w-4 h-4" />
+                                Create Case Study
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Desktop Right / Mobile 3rd Line: Action Area */}
+                    <div className="flex items-center justify-between md:justify-end gap-2 w-full md:w-auto border-t border-white/10 md:border-0 pt-3 md:pt-0 mt-2 md:mt-0">
                         {/* Status toggle */}
                         <button
                             onClick={toggleStatus}
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${currentStatus === "published"
+                            className={`flex flex-1 md:flex-none justify-center items-center gap-1.5 px-3 py-2 md:py-1.5 rounded-lg text-xs font-medium transition-all ${currentStatus === "published"
                                 ? "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
                                 : "bg-amber-500/10 text-amber-400 hover:bg-amber-500/20"
                                 }`}
@@ -346,7 +409,7 @@ export default function ProjectWorkspace() {
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-white text-black text-xs font-semibold rounded-lg hover:bg-neutral-200 transition-colors disabled:opacity-50"
+                            className="flex flex-1 md:flex-none justify-center items-center gap-1.5 px-4 py-2 md:py-1.5 bg-white text-black text-xs font-semibold rounded-lg hover:bg-neutral-200 transition-colors disabled:opacity-50"
                         >
                             {saving ? (
                                 <>
@@ -362,10 +425,10 @@ export default function ProjectWorkspace() {
                         </button>
 
                         {/* More menu */}
-                        <div className="relative">
+                        <div className="relative flex-none">
                             <button
                                 onClick={() => setShowMoreMenu(!showMoreMenu)}
-                                className="p-1.5 rounded-lg text-neutral-500 hover:text-white hover:bg-white/5 transition-colors"
+                                className="flex justify-center items-center p-2 md:p-1.5 rounded-lg text-neutral-500 hover:text-white hover:bg-white/5 transition-colors border border-transparent hover:border-white/10 w-full md:w-auto h-full"
                             >
                                 <MoreHorizontal className="w-4 h-4" />
                             </button>
@@ -408,7 +471,7 @@ export default function ProjectWorkspace() {
                 </div>
 
                 {/* Content area */}
-                <div className="flex-1 overflow-y-auto px-8 py-8 max-w-4xl mx-auto w-full">
+                <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 md:py-8 w-full">
                     {activePanel === "project" ? (
                         <ProjectEditor
                             project={project}
@@ -455,6 +518,8 @@ function ProjectEditor({
     onContentChange: (c: string) => void;
 }) {
     const [tagInput, setTagInput] = useState("");
+    const [isDraggingCover, setIsDraggingCover] = useState(false);
+    const [uploadingCover, setUploadingCover] = useState(false);
 
     const update = (fields: Partial<ProjectData>) =>
         onProjectChange({ ...project, ...fields });
@@ -471,19 +536,95 @@ function ProjectEditor({
 
     return (
         <div>
-            <input
-                type="text"
+            {/* Cover Image Dropzone */}
+            <div
+                onDragOver={(e) => { e.preventDefault(); setIsDraggingCover(true); }}
+                onDragLeave={() => setIsDraggingCover(false)}
+                onDrop={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsDraggingCover(false);
+                    const file = e.dataTransfer?.files?.[0];
+                    if (file && (file.type.startsWith("image/") || file.type.startsWith("video/"))) {
+                        setUploadingCover(true);
+                        const res = await uploadFile(file);
+                        if (res) update({ image: res.url });
+                        setUploadingCover(false);
+                    }
+                }}
+                className={`relative w-full aspect-[4/3] md:aspect-video md:h-auto md:max-h-[500px] rounded-3xl mb-8 overflow-hidden transition-all flex flex-col items-center justify-center cursor-pointer border-2 ${isDraggingCover ? "border-blue-500 bg-blue-500/10" : project.image ? "border-transparent" : "border-dashed border-white/20 hover:border-white/40 hover:bg-white/5"
+                    }`}
+            >
+                {project.image ? (
+                    <>
+                        <img src={project.image} alt="Cover" className="absolute inset-0 w-full h-full object-cover z-0" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex flex-col items-center justify-center z-20 gap-3">
+                            <span className="text-white font-medium bg-black/50 px-4 py-2 rounded-full backdrop-blur-md pointer-events-none">Change Cover Image</span>
+                            <div className="flex gap-2">
+                                <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); const url = prompt("Paste external image URL:"); if (url) update({ image: url }); }} className="px-3 py-1.5 bg-black/50 hover:bg-black/70 text-white text-xs rounded-lg transition-colors backdrop-blur-md border border-white/10">Paste Link</button>
+                                <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open("/admin/media", "_blank"); }} className="px-3 py-1.5 bg-black/50 hover:bg-black/70 text-white text-xs rounded-lg transition-colors backdrop-blur-md border border-white/10">Media Library</button>
+                                <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); update({ image: "" }); }} className="px-3 py-1.5 bg-red-500/50 hover:bg-red-500/70 text-white text-xs rounded-lg transition-colors backdrop-blur-md border border-white/10">Remove</button>
+                            </div>
+                        </div>
+                    </>
+                ) : (
+                    <div className="text-center p-6 z-20 relative pointer-events-none">
+                        <Plus className="w-8 h-8 text-neutral-500 mx-auto mb-3" />
+                        <p className="text-sm font-medium text-neutral-300">Add Cover Image</p>
+                        <p className="text-xs text-neutral-500 mt-1 mb-4">Drag & drop or click to attach from computer</p>
+                        <div className="flex items-center justify-center gap-2 pointer-events-auto">
+                            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); const url = prompt("Paste external image URL:"); if (url) update({ image: url }); }} className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs rounded-lg transition-colors border border-white/10">Paste Link</button>
+                            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open("/admin/media", "_blank"); }} className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs rounded-lg transition-colors border border-white/10">Media Library</button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Fallback hidden input for click-to-upload */}
+                <input
+                    type="file"
+                    accept="image/*,video/*"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                            setUploadingCover(true);
+                            const res = await uploadFile(file);
+                            if (res) update({ image: res.url });
+                            setUploadingCover(false);
+                        }
+                    }}
+                />
+
+                {uploadingCover && (
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-10">
+                        <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    </div>
+                )}
+            </div>
+
+            <textarea
                 value={project.title}
                 onChange={(e) => update({ title: e.target.value })}
                 placeholder="Project title..."
-                className="w-full text-4xl font-bold text-white bg-transparent border-none outline-none placeholder-neutral-700 mb-2"
+                className="w-full text-3xl md:text-4xl font-bold text-white bg-transparent border-none outline-none placeholder-neutral-700 mb-2 resize-none overflow-hidden min-h-[48px] md:min-h-[56px] break-words whitespace-pre-wrap flex-shrink-0"
+                style={{ height: "auto" }}
+                onInput={(e) => {
+                    const target = e.target as HTMLTextAreaElement;
+                    target.style.height = 'auto';
+                    target.style.height = target.scrollHeight + 'px';
+                }}
             />
-            <input
-                type="text"
+            <textarea
                 value={project.description}
                 onChange={(e) => update({ description: e.target.value })}
                 placeholder="Brief description..."
-                className="w-full text-lg text-neutral-400 bg-transparent border-none outline-none placeholder-neutral-700 mb-6"
+                className="w-full text-base md:text-lg text-neutral-400 bg-transparent border-none outline-none placeholder-neutral-700 mb-6 resize-none overflow-hidden min-h-[48px] break-words whitespace-pre-wrap flex-shrink-0"
+                style={{ height: "auto" }}
+                onInput={(e) => {
+                    const target = e.target as HTMLTextAreaElement;
+                    target.style.height = 'auto';
+                    target.style.height = target.scrollHeight + 'px';
+                }}
             />
 
             <details className="mb-8">
@@ -494,7 +635,7 @@ function ProjectEditor({
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wider">
-                                Category
+                                Category (Frontend Tags)
                             </label>
                             <input
                                 type="text"
@@ -502,18 +643,6 @@ function ProjectEditor({
                                 onChange={(e) => update({ category: e.target.value })}
                                 className={inputClass}
                                 placeholder="e.g. FinTech"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wider">
-                                Cover Image
-                            </label>
-                            <input
-                                type="text"
-                                value={project.image}
-                                onChange={(e) => update({ image: e.target.value })}
-                                className={inputClass}
-                                placeholder="/uploads/cover.jpg"
                             />
                         </div>
                     </div>
@@ -531,7 +660,7 @@ function ProjectEditor({
                     </div>
                     <div>
                         <label className="block text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wider">
-                            Tags
+                            Internal SEO Tags (Hidden on Frontend)
                         </label>
                         <div className="flex gap-2 flex-wrap mb-2">
                             {project.tags.map((tag) => (
@@ -565,60 +694,7 @@ function ProjectEditor({
                             placeholder="Add tag, press Enter"
                         />
                     </div>
-                    <div>
-                        <label className="block text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wider">
-                            Metrics
-                        </label>
-                        <div className="space-y-2 mb-2">
-                            {project.metrics.map((m, i) => (
-                                <div key={i} className="flex gap-2 items-center">
-                                    <input
-                                        type="text"
-                                        value={m.label}
-                                        onChange={(e) => {
-                                            const updated = [...project.metrics];
-                                            updated[i] = { ...updated[i], label: e.target.value };
-                                            update({ metrics: updated });
-                                        }}
-                                        className={inputClass}
-                                        placeholder="Label"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={m.value}
-                                        onChange={(e) => {
-                                            const updated = [...project.metrics];
-                                            updated[i] = { ...updated[i], value: e.target.value };
-                                            update({ metrics: updated });
-                                        }}
-                                        className={inputClass}
-                                        placeholder="Value"
-                                    />
-                                    <button
-                                        onClick={() =>
-                                            update({
-                                                metrics: project.metrics.filter((_, idx) => idx !== i),
-                                            })
-                                        }
-                                        className="p-2 text-neutral-500 hover:text-red-400 flex-shrink-0"
-                                    >
-                                        ×
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                        <button
-                            onClick={() =>
-                                update({
-                                    metrics: [...project.metrics, { label: "", value: "" }],
-                                })
-                            }
-                            className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white transition-colors"
-                        >
-                            <Plus className="w-3.5 h-3.5" />
-                            Add Metric
-                        </button>
-                    </div>
+
                     <div className="flex items-center gap-3">
                         <label className="relative inline-flex items-center cursor-pointer">
                             <input
@@ -659,6 +735,9 @@ function CaseStudyEditor({
     onCaseStudyChange: (updates: Partial<CaseStudyData>) => void;
     onContentChange: (c: string) => void;
 }) {
+    const [isDraggingCover, setIsDraggingCover] = useState(false);
+    const [uploadingCover, setUploadingCover] = useState(false);
+
     if (!caseStudy) return null;
 
     const inputClass =
@@ -666,35 +745,97 @@ function CaseStudyEditor({
 
     return (
         <div>
-            <input
-                type="text"
+            {/* Cover Image Dropzone */}
+            <div
+                onDragOver={(e) => { e.preventDefault(); setIsDraggingCover(true); }}
+                onDragLeave={() => setIsDraggingCover(false)}
+                onDrop={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsDraggingCover(false);
+                    const file = e.dataTransfer?.files?.[0];
+                    if (file && (file.type.startsWith("image/") || file.type.startsWith("video/"))) {
+                        setUploadingCover(true);
+                        const res = await uploadFile(file);
+                        if (res) onCaseStudyChange({ coverImage: res.url });
+                        setUploadingCover(false);
+                    }
+                }}
+                className={`relative w-full aspect-[4/3] md:aspect-video md:h-auto md:max-h-[500px] rounded-3xl mb-8 overflow-hidden transition-all flex flex-col items-center justify-center cursor-pointer border-2 ${isDraggingCover ? "border-blue-500 bg-blue-500/10" : caseStudy.coverImage ? "border-transparent" : "border-dashed border-white/20 hover:border-white/40 hover:bg-white/5"
+                    }`}
+            >
+                {caseStudy.coverImage ? (
+                    <>
+                        <img src={caseStudy.coverImage} alt="Cover" className="absolute inset-0 w-full h-full object-cover z-0" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex flex-col items-center justify-center z-20 gap-3">
+                            <span className="text-white font-medium bg-black/50 px-4 py-2 rounded-full backdrop-blur-md pointer-events-none">Change Cover Image</span>
+                            <div className="flex gap-2">
+                                <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); const url = prompt("Paste external image URL:"); if (url) onCaseStudyChange({ coverImage: url }); }} className="px-3 py-1.5 bg-black/50 hover:bg-black/70 text-white text-xs rounded-lg transition-colors backdrop-blur-md border border-white/10">Paste Link</button>
+                                <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open("/admin/media", "_blank"); }} className="px-3 py-1.5 bg-black/50 hover:bg-black/70 text-white text-xs rounded-lg transition-colors backdrop-blur-md border border-white/10">Media Library</button>
+                                <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCaseStudyChange({ coverImage: "" }); }} className="px-3 py-1.5 bg-red-500/50 hover:bg-red-500/70 text-white text-xs rounded-lg transition-colors backdrop-blur-md border border-white/10">Remove</button>
+                            </div>
+                        </div>
+                    </>
+                ) : (
+                    <div className="text-center p-6 z-20 relative pointer-events-none">
+                        <Plus className="w-8 h-8 text-neutral-500 mx-auto mb-3" />
+                        <p className="text-sm font-medium text-neutral-300">Add Cover Image</p>
+                        <p className="text-xs text-neutral-500 mt-1 mb-4">Drag & drop or click to attach from computer</p>
+                        <div className="flex items-center justify-center gap-2 pointer-events-auto">
+                            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); const url = prompt("Paste external image URL:"); if (url) onCaseStudyChange({ coverImage: url }); }} className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs rounded-lg transition-colors border border-white/10">Paste Link</button>
+                            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open("/admin/media", "_blank"); }} className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs rounded-lg transition-colors border border-white/10">Media Library</button>
+                        </div>
+                    </div>
+                )}
+
+                <input
+                    type="file"
+                    accept="image/*,video/*"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                            setUploadingCover(true);
+                            const res = await uploadFile(file);
+                            if (res) onCaseStudyChange({ coverImage: res.url });
+                            setUploadingCover(false);
+                        }
+                    }}
+                />
+
+                {uploadingCover && (
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-10">
+                        <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    </div>
+                )}
+            </div>
+
+            <textarea
                 value={caseStudy.title}
                 onChange={(e) => onCaseStudyChange({ title: e.target.value })}
                 placeholder="Case study title..."
-                className="w-full text-4xl font-bold text-white bg-transparent border-none outline-none placeholder-neutral-700 mb-2"
+                className="w-full text-3xl md:text-4xl font-bold text-white bg-transparent border-none outline-none placeholder-neutral-700 mb-2 resize-none overflow-hidden min-h-[48px] md:min-h-[56px] break-words whitespace-pre-wrap flex-shrink-0"
+                style={{ height: "auto" }}
+                onInput={(e) => {
+                    const target = e.target as HTMLTextAreaElement;
+                    target.style.height = 'auto';
+                    target.style.height = target.scrollHeight + 'px';
+                }}
             />
-            <input
-                type="text"
+            <textarea
                 value={caseStudy.description}
                 onChange={(e) => onCaseStudyChange({ description: e.target.value })}
                 placeholder="Brief description..."
-                className="w-full text-lg text-neutral-400 bg-transparent border-none outline-none placeholder-neutral-700 mb-6"
+                className="w-full text-base md:text-lg text-neutral-400 bg-transparent border-none outline-none placeholder-neutral-700 mb-6 resize-none overflow-hidden min-h-[48px] break-words whitespace-pre-wrap flex-shrink-0"
+                style={{ height: "auto" }}
+                onInput={(e) => {
+                    const target = e.target as HTMLTextAreaElement;
+                    target.style.height = 'auto';
+                    target.style.height = target.scrollHeight + 'px';
+                }}
             />
 
-            <details className="mb-8">
-                <summary className="text-xs text-neutral-500 uppercase tracking-wider font-medium cursor-pointer hover:text-neutral-400 transition-colors select-none">
-                    Cover Image ▸
-                </summary>
-                <div className="mt-4 p-4 rounded-xl border border-white/[0.06] bg-white/[0.02]">
-                    <input
-                        type="text"
-                        value={caseStudy.coverImage}
-                        onChange={(e) => onCaseStudyChange({ coverImage: e.target.value })}
-                        className={inputClass}
-                        placeholder="Cover image URL"
-                    />
-                </div>
-            </details>
+
 
             <div className="border-t border-white/[0.06] mb-8" />
 

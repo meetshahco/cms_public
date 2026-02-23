@@ -28,6 +28,9 @@ export default function EditCaseStudyPage() {
     const [status, setStatus] = useState<"draft" | "published">("draft");
     const [content, setContent] = useState("");
 
+    const [isDraggingCover, setIsDraggingCover] = useState(false);
+    const [uploadingCover, setUploadingCover] = useState(false);
+
     useEffect(() => {
         fetch(`/api/cms/case-studies?slug=${caseStudySlug}`)
             .then((res) => res.json())
@@ -130,14 +133,85 @@ export default function EditCaseStudyPage() {
                 className="w-full text-lg text-neutral-400 bg-transparent border-none outline-none placeholder-neutral-700 mb-6"
             />
 
-            <div className="mb-8">
+            {/* Cover Image Dropzone */}
+            <div
+                onDragOver={(e) => { e.preventDefault(); setIsDraggingCover(true); }}
+                onDragLeave={() => setIsDraggingCover(false)}
+                onDrop={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsDraggingCover(false);
+                    const file = e.dataTransfer?.files?.[0];
+                    if (file && (file.type.startsWith("image/") || file.type.startsWith("video/"))) {
+                        setUploadingCover(true);
+                        const formData = new FormData();
+                        formData.append("file", file);
+                        try {
+                            const res = await fetch("/api/cms/upload", { method: "POST", body: formData });
+                            if (res.ok) {
+                                const data = await res.json();
+                                setCoverImage(data.url);
+                            }
+                        } catch { }
+                        setUploadingCover(false);
+                    }
+                }}
+                className={`relative w-full aspect-[8/12] max-h-[400px] md:aspect-video md:max-h-[500px] rounded-3xl mb-8 overflow-hidden transition-all flex flex-col items-center justify-center cursor-pointer border-2 ${isDraggingCover ? "border-blue-500 bg-blue-500/10" : coverImage ? "border-transparent" : "border-dashed border-white/20 hover:border-white/40 hover:bg-white/5"
+                    }`}
+            >
+                {coverImage ? (
+                    <>
+                        <img src={coverImage} alt="Cover" className="absolute inset-0 w-full h-full object-cover z-0" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex flex-col items-center justify-center z-20 gap-3">
+                            <span className="text-white font-medium bg-black/50 px-4 py-2 rounded-full backdrop-blur-md pointer-events-none">Change Cover Image</span>
+                            <div className="flex gap-2">
+                                <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); const url = prompt("Paste external image URL:"); if (url) setCoverImage(url); }} className="px-3 py-1.5 bg-black/50 hover:bg-black/70 text-white text-xs rounded-lg transition-colors backdrop-blur-md border border-white/10">Paste Link</button>
+                                <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open("/admin/media", "_blank"); }} className="px-3 py-1.5 bg-black/50 hover:bg-black/70 text-white text-xs rounded-lg transition-colors backdrop-blur-md border border-white/10">Media Library</button>
+                                <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCoverImage(""); }} className="px-3 py-1.5 bg-red-500/50 hover:bg-red-500/70 text-white text-xs rounded-lg transition-colors backdrop-blur-md border border-white/10">Remove</button>
+                            </div>
+                        </div>
+                    </>
+                ) : (
+                    <div className="text-center p-6 z-20 relative pointer-events-none">
+                        <div className="w-8 h-8 rounded-full border border-white/20 mx-auto mb-3 flex items-center justify-center">
+                            <span className="text-xl leading-none text-neutral-400">+</span>
+                        </div>
+                        <p className="text-sm font-medium text-neutral-300">Add Cover Image</p>
+                        <p className="text-xs text-neutral-500 mt-1 mb-4">Drag & drop or click to attach from computer</p>
+                        <div className="flex items-center justify-center gap-2 pointer-events-auto">
+                            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); const url = prompt("Paste external image URL:"); if (url) setCoverImage(url); }} className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs rounded-lg transition-colors border border-white/10">Paste Link</button>
+                            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open("/admin/media", "_blank"); }} className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs rounded-lg transition-colors border border-white/10">Media Library</button>
+                        </div>
+                    </div>
+                )}
+
                 <input
-                    type="text"
-                    value={coverImage}
-                    onChange={(e) => setCoverImage(e.target.value)}
-                    placeholder="Cover image URL (optional)"
-                    className={inputClass}
+                    type="file"
+                    accept="image/*,video/*"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                            setUploadingCover(true);
+                            const formData = new FormData();
+                            formData.append("file", file);
+                            try {
+                                const res = await fetch("/api/cms/upload", { method: "POST", body: formData });
+                                if (res.ok) {
+                                    const data = await res.json();
+                                    setCoverImage(data.url);
+                                }
+                            } catch { }
+                            setUploadingCover(false);
+                        }
+                    }}
                 />
+
+                {uploadingCover && (
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-10">
+                        <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    </div>
+                )}
             </div>
 
             <div className="border-t border-white/[0.06] mb-8" />
