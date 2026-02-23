@@ -196,7 +196,13 @@ export const MockupsBlock = Node.create({
     },
 
     renderHTML({ HTMLAttributes }) {
-        const { images = [], layout = 'grid', columns = 3, deviceType, mockupStyle, bezelType, colorScheme, hasShadow, cornerRadius, aspectRatio, alignment = 'center' } = HTMLAttributes;
+        let images = HTMLAttributes.images || [];
+        if (typeof images === 'string') {
+            try { images = JSON.parse(images); } catch { images = []; }
+        } else if (!Array.isArray(images)) {
+            images = [];
+        }
+        const { layout = 'grid', columns = 3, deviceType, mockupStyle, bezelType, colorScheme, hasShadow, cornerRadius, aspectRatio, alignment = 'center' } = HTMLAttributes;
 
         // Function to create a statically rendered Mockup Frame
         const createMockupFrameHTML = (img: MockupImage) => {
@@ -371,9 +377,18 @@ export const MockupsBlock = Node.create({
 
 const MockupsNodeView = (props: any) => {
     const {
-        images, layout, columns, deviceType, mockupStyle,
+        layout, columns, deviceType, mockupStyle,
         bezelType, colorScheme, hasShadow, cornerRadius, aspectRatio, alignment = 'center'
     } = props.node.attrs;
+
+    const parseImages = (val: any) => {
+        if (typeof val === 'string') {
+            try { return JSON.parse(val); } catch { return []; }
+        }
+        return Array.isArray(val) ? val : [];
+    };
+
+    const images = parseImages(props.node.attrs.images);
 
     const [activeTab, setActiveTab] = useState<"images" | "layout" | "styles">("images");
     const [isEditing, setIsEditing] = useState(images.length === 0); // Open editor by default if empty

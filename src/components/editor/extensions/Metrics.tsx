@@ -29,7 +29,12 @@ export const MetricsBlock = Node.create({
     },
 
     renderHTML({ HTMLAttributes }) {
-        const metrics = (HTMLAttributes.metrics || []) as { label: string; value: string }[];
+        let metrics = HTMLAttributes.metrics || [];
+        if (typeof metrics === 'string') {
+            try { metrics = JSON.parse(metrics); } catch { metrics = []; }
+        } else if (!Array.isArray(metrics)) {
+            metrics = [];
+        }
         const alignment = HTMLAttributes.alignment || 'center';
 
         // Base static layout
@@ -48,7 +53,7 @@ export const MetricsBlock = Node.create({
             [
                 "div",
                 { class: "grid grid-cols-2 gap-6 md:gap-8" }, // Changed to 2 cols for smaller footprint
-                ...metrics.map((m) => [
+                ...metrics.map((m: any) => [
                     "div",
                     { class: "flex flex-col border-l-2 border-white/10 pl-5" },
                     ["span", { class: "text-4xl md:text-5xl font-medium tracking-tight text-white mb-2" }, m.value || "-"],
@@ -66,15 +71,25 @@ export const MetricsBlock = Node.create({
 import { useState, useEffect } from "react";
 
 const MetricsNodeView = (props: any) => {
-    const { metrics, alignment } = props.node.attrs;
+    const { alignment } = props.node.attrs;
+
+    const parseMetrics = (val: any) => {
+        if (typeof val === 'string') {
+            try { return JSON.parse(val); } catch { return []; }
+        }
+        return Array.isArray(val) ? val : [];
+    };
+
+    const initialMetrics = parseMetrics(props.node.attrs.metrics);
 
     // Use local state for fast, uninterrupted typing
-    const [localMetrics, setLocalMetrics] = useState(metrics || []);
+    const [localMetrics, setLocalMetrics] = useState(initialMetrics.length > 0 ? initialMetrics : [{ label: "", value: "" }]);
     const [localAlignment, setLocalAlignment] = useState(alignment || 'center');
 
     // Sync from CMS (e.g. if user hits Undo in Tiptap)
     useEffect(() => {
-        setLocalMetrics(props.node.attrs.metrics || []);
+        const parsed = parseMetrics(props.node.attrs.metrics);
+        setLocalMetrics(parsed.length > 0 ? parsed : [{ label: "", value: "" }]);
         setLocalAlignment(props.node.attrs.alignment || 'center');
     }, [props.node.attrs.metrics, props.node.attrs.alignment]);
 
