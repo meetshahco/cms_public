@@ -33,20 +33,4 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     session: {
         strategy: "jwt",
     },
-    callbacks: {
-        authorized({ auth, request: { nextUrl } }) {
-            const isLoggedIn = !!auth?.user;
-            // After the proxy rewrites, the internal pathname is always /admin/*
-            const isOnAdmin = nextUrl.pathname.startsWith("/admin");
-            const isOnLogin = nextUrl.pathname === "/admin/login";
-
-            if (isOnAdmin && !isOnLogin && !isLoggedIn) {
-                return false; // Redirect to signIn page (/admin/login)
-            }
-            if (isOnLogin && isLoggedIn) {
-                return Response.redirect(new URL("/admin", nextUrl));
-            }
-            return true;
-        },
-    },
 });
