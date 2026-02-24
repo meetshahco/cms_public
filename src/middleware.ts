@@ -13,6 +13,13 @@ export default auth((request) => {
     const currentHost = xForwardedHost || hostname || url.hostname;
     const pathname = url.pathname;
 
+    // v4 - Early return for AuthJS internal routes to avoid middleware interference
+    if (pathname.startsWith("/api/auth")) {
+        const response = NextResponse.next();
+        response.headers.set("x-middleware-v", "4");
+        return response;
+    }
+
     const isAdminSubdomain =
         currentHost === ADMIN_DOMAIN ||
         currentHost.startsWith("admin.localhost") ||
