@@ -2,7 +2,8 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
 const isProduction = process.env.NODE_ENV === "production";
-const domain = ".meetshah.co";
+// Only use the root domain cookie in production when on the actual live domain
+const cookieDomain = isProduction ? ".meetshah.co" : undefined;
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     trustHost: true,
@@ -45,7 +46,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 sameSite: "lax",
                 path: "/",
                 // Only set domain if on the main production domain to avoid issues in Vercel previews
-                domain: domain,
+                domain: cookieDomain,
                 secure: true,
             },
         },
@@ -55,7 +56,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 httpOnly: true,
                 sameSite: "lax",
                 path: "/",
-                domain: domain,
+                domain: cookieDomain,
                 secure: true,
             },
         },

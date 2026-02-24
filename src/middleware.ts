@@ -42,7 +42,12 @@ export default auth((request) => {
             return NextResponse.redirect(new URL(cleanPath, request.url));
         }
 
-        mappedPathname = pathname === "/" ? "/admin" : `/admin${pathname}`;
+        // For API routes, we don't want to prefix with /admin
+        if (pathname.startsWith("/api/")) {
+            mappedPathname = pathname;
+        } else {
+            mappedPathname = pathname === "/" ? "/admin" : `/admin${pathname}`;
+        }
     }
 
     // Now check auth against mappedPathname (which is what the Next app actually sees)
