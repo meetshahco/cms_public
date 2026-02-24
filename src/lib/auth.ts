@@ -39,12 +39,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     cookies: isProduction ? {
         sessionToken: {
-            name: `__Secure-authjs.session-token`,
+            name: `__Secure-meet-auth-session`,
             options: {
                 httpOnly: true,
                 sameSite: "lax",
                 path: "/",
                 domain: domain,
+                secure: true,
+            },
+        },
+        callbackUrl: {
+            name: `__Secure-meet-auth-callback`,
+            options: {
+                httpOnly: true,
+                sameSite: "lax",
+                path: "/",
+                domain: domain,
+                secure: true,
+            },
+        },
+        csrfToken: {
+            name: `__Host-meet-auth-csrf`,
+            options: {
+                httpOnly: true,
+                sameSite: "lax",
+                path: "/",
                 secure: true,
             },
         },
