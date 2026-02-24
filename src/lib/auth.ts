@@ -1,7 +1,11 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
+const isProduction = process.env.NODE_ENV === "production";
+const domain = ".meetshah.co";
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
+    trustHost: true,
     providers: [
         Credentials({
             name: "Admin Login",
@@ -33,4 +37,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     session: {
         strategy: "jwt",
     },
+    cookies: isProduction ? {
+        sessionToken: {
+            name: `__Secure-authjs.session-token`,
+            options: {
+                httpOnly: true,
+                sameSite: "lax",
+                path: "/",
+                domain: domain,
+                secure: true,
+            },
+        },
+    } : undefined,
 });
