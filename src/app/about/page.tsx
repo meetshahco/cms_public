@@ -2,6 +2,7 @@ import { Navbar } from "@/components/Navbar";
 import { ContactAnimationProvider } from "@/context/ContactAnimationContext";
 import { getSettings } from "@/lib/cms/storage";
 import { AboutClient } from "./AboutClient";
+import { Footer } from "@/components/Footer";
 
 export default async function AboutPage() {
     const settings = await getSettings();
@@ -17,6 +18,7 @@ export default async function AboutPage() {
 
                 <AboutClient />
             </main>
+            <Footer />
         </ContactAnimationProvider>
     );
 }

@@ -73,7 +73,7 @@ export function ProjectDetails({ project, content, caseStudies }: ProjectDetails
             </motion.section>
 
             {/* Main Content Area */}
-            <div className="max-w-5xl mx-auto px-6 md:px-12 lg:px-24 py-20 pb-40">
+            <div className="max-w-screen-2xl mx-auto px-6 md:px-12 lg:px-24 py-20 pb-40">
                 {/* Metrics */}
                 {project.metrics && project.metrics.length > 0 && (
                     <motion.section

@@ -56,6 +56,7 @@ export interface Settings {
         twitter: string;
         github: string;
         linkedin: string;
+        medium?: string;
     };
     adminName: string;
     adminEmail: string;
@@ -279,6 +280,7 @@ const DEFAULT_SETTINGS: Settings = {
         twitter: "https://twitter.com/meet",
         github: "https://github.com/meet",
         linkedin: "https://linkedin.com/in/meet",
+        medium: "https://medium.com/@meet",
     },
     adminName: "Meet Shah",
     adminEmail: "hello@meetshah.design",

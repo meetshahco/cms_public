@@ -6,6 +6,7 @@ import { ProjectGallery } from "@/components/ProjectGallery";
 import { GlobalLoader } from "@/components/GlobalLoader";
 import { HomeContainer } from "@/components/HomeContainer";
 import { AboutMe } from "@/components/AboutMe";
+import { Footer } from "@/components/Footer";
 import { ContactAnimationProvider } from "@/context/ContactAnimationContext";
 import { PlaneOverlay } from "@/components/PlaneOverlay";
 import { listProjects, getSettings } from "@/lib/cms/storage";
@@ -28,9 +29,7 @@ export default async function Home() {
         <Hero />
         <ProjectGallery projects={featuredProjects} />
         <AboutMe />
-        <footer className="py-24 text-center text-neutral-600 border-t border-neutral-900">
-          <p className="font-medium text-sm">© {new Date().getFullYear()} {settings.siteTitle || "Meet Shah"} | Portfolio Redesign V2. Crafted with code & chaos.</p>
-        </footer>
+        <Footer />
       </HomeContainer>
     </ContactAnimationProvider>
   );

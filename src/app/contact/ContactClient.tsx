@@ -5,7 +5,7 @@ import type { Settings } from "@/lib/cms/storage";
 
 export function ContactClient({ settings }: { settings: Settings }) {
     return (
-        <div className="w-full max-w-2xl relative z-10 flex flex-col items-center text-center">
+        <div className="w-full max-w-screen-2xl relative z-10 flex flex-col items-center text-center">
             {/* Coming Soon Header */}
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}

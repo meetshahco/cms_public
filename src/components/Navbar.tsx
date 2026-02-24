@@ -55,7 +55,7 @@ export function Navbar({ siteTitle = "Meet Shah" }: { siteTitle?: string }) {
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 px-3 py-4 sm:px-6 md:px-12 md:py-6 backdrop-blur-sm">
-            <div className="mx-auto max-w-5xl flex items-center justify-between w-full">
+            <div className="mx-auto max-w-screen-2xl flex items-center justify-between w-full">
                 {pathname !== "/" ? (
                     <Link href="/" className="flex items-center justify-center p-2 -ml-2 text-neutral-400 hover:text-white transition-colors group">
                         <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />

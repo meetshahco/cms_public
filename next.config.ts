@@ -19,6 +19,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "cdn-images-1.medium.com",
       },
+      {
+        protocol: "https",
+        hostname: "vntpcccaspqx3u47.public.blob.vercel-storage.com",
+      },
     ],
     dangerouslyAllowSVG: true,
   },

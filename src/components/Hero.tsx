@@ -83,6 +83,21 @@ const HIGHLIGHT_CONFIG: Record<string, HighlightConfig> = {
 
 const HERO_TEXT = "Hey there, I’m Meet Shah, a Product Designer from India who loves cooking, travelling and watching Cinema - to gain knowledge, haha!";
 
+// Temporary placeholder config for frontend. Later this can be fetched from the CMS
+// Map these 1.svg, 2.svg etc. to the images from your Google Drive inside the `public/brands` folder.
+const CLIENT_LOGOS = [
+    { id: '1', name: 'Brand 1', src: '/brands/1.svg' },
+    { id: '2', name: 'Brand 2', src: '/brands/2.svg' },
+    { id: '3', name: 'Brand 3', src: '/brands/3.svg' },
+    { id: '4', name: 'Brand 4', src: '/brands/4.svg' },
+    { id: '5', name: 'Brand 5', src: '/brands/5.svg' },
+    { id: '6', name: 'Brand 6', src: '/brands/6.svg' },
+    { id: '7', name: 'Brand 7', src: '/brands/7.svg' },
+    { id: '8', name: 'Brand 8', src: '/brands/8.svg' },
+    { id: '9', name: 'Brand 9', src: '/brands/9.svg' },
+    { id: '10', name: 'Brand 10', src: '/brands/10.svg' },
+    { id: '11', name: 'Brand 11', src: '/brands/11.svg' },
+];
 export function Hero() {
     const [roleIndex, setRoleIndex] = useState(0);
     const [highlightIndex, setHighlightIndex] = useState(0);
@@ -204,8 +219,8 @@ export function Hero() {
     const activeRect = rects[activeKey];
 
     return (
-        <section className="relative flex min-h-screen flex-col justify-center px-6 pt-32 pb-16 md:px-12 md:pt-40 overflow-hidden">
-            <div className="mx-auto max-w-5xl relative z-10" ref={containerRef}>
+        <section className="relative flex min-h-[90vh] flex-col justify-center px-6 md:px-12 pt-32 md:pt-48 pb-16 overflow-hidden">
+            <div className="mx-auto max-w-5xl relative z-10 w-full" ref={containerRef}>
                 <LayoutGroup>
                     <motion.h1
                         initial={{ opacity: 0, y: 20 }}
@@ -316,7 +331,7 @@ export function Hero() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5, duration: 0.8 }}
-                    className="mt-12 sm:mt-16 text-xl font-light text-neutral-400 sm:text-2xl md:text-3xl flex flex-wrap items-center gap-x-2 sm:gap-x-3 relative z-10"
+                    className="mt-16 sm:mt-24 text-xl font-light text-neutral-400 sm:text-2xl md:text-3xl flex flex-wrap items-center gap-x-2 sm:gap-x-3 relative z-10"
                 >
                     <span className="whitespace-nowrap opacity-50 px-1">I’m here to</span>
                     <div className="relative inline-flex h-[1.3em] overflow-hidden align-bottom">
@@ -362,30 +377,30 @@ export function Hero() {
                                 setRef={(el) => { refs.current["I'm really here!"] = el; }}
                                 inactiveClass="text-neutral-400 opacity-50 transition-all duration-1000"
                             />
-                        </a>
 
-                        {/* Inline Dwight GIF effortlessly locked into Flex Layout via permanent reserved space */}
-                        <div className="relative w-16 h-14 sm:w-28 sm:h-24 flex-shrink-0">
-                            <AnimatePresence>
-                                {(subheaderPhase === "text" || subheaderPhase === "end") && (
-                                    <motion.div
-                                        initial={{ opacity: 0, scale: 0.8, rotate: -15, filter: "blur(4px)" }}
-                                        animate={{ opacity: 1, scale: 1, rotate: 3, filter: "blur(0px)" }}
-                                        exit={{ opacity: 0, scale: 0.8, filter: "blur(4px)" }}
-                                        transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                                        className="absolute inset-0 rounded-xl overflow-hidden border-2 border-white/20 shadow-2xl bg-black z-10 origin-left"
-                                    >
-                                        <Image
-                                            src="/assets/dwight_phone.gif"
-                                            alt="dwight typing"
-                                            fill
-                                            className="object-cover"
-                                            unoptimized
-                                        />
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
+                            {/* Absolutely positioned Dwight GIF overlapping the text at roughly 90/10 ratio */}
+                            <div className="absolute top-1/2 left-[90%] -translate-y-1/2 w-16 h-14 sm:w-28 sm:h-24 pointer-events-none z-0">
+                                <AnimatePresence>
+                                    {(subheaderPhase === "text" || subheaderPhase === "end") && (
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.8, rotate: -15, filter: "blur(4px)" }}
+                                            animate={{ opacity: 1, scale: 1, rotate: 3, filter: "blur(0px)" }}
+                                            exit={{ opacity: 0, scale: 0.8, filter: "blur(4px)" }}
+                                            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                                            className="absolute inset-0 rounded-xl overflow-hidden border-2 border-white/20 shadow-2xl bg-black origin-bottom-left"
+                                        >
+                                            <Image
+                                                src="/assets/dwight_phone.gif"
+                                                alt="dwight typing"
+                                                fill
+                                                className="object-cover"
+                                                unoptimized
+                                            />
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        </a>
                     </div>
                 </motion.div>
 
@@ -393,7 +408,7 @@ export function Hero() {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 1, duration: 0.5 }}
-                    className="mt-6 relative z-10"
+                    className="mt-4 relative z-10"
                 >
                     <a
                         href="https://drive.google.com/file/d/1T2yRyHmrCg2aqya-pVXIBlPyfyaPwqoc/view"
@@ -411,8 +426,62 @@ export function Hero() {
                         <ArrowRight className={cn("transition-transform group-hover:translate-x-1", isViewDeckCta ? "w-4 h-4" : "w-4 h-4")} />
                     </a>
                 </motion.div>
+
+                <BrandStrip isVisible={isViewDeckCta} />
             </div>
         </section>
+    );
+}
+
+function BrandStrip({ isVisible }: { isVisible: boolean }) {
+    // Duplicate the logos array to achieve a seamless marquee effect
+    // We triplicate it so that we can pan one full set and loop back instantly without jump cuts
+    const marqueeLogos = [...CLIENT_LOGOS, ...CLIENT_LOGOS, ...CLIENT_LOGOS];
+
+    return (
+        <div className="w-full mt-8 h-16 sm:h-20 mb-6 relative">
+            <AnimatePresence>
+                {isVisible && (
+                    <motion.div
+                        initial={{ opacity: 0, filter: "blur(4px)" }}
+                        animate={{ opacity: 1, filter: "blur(0px)" }}
+                        exit={{ opacity: 0, filter: "blur(4px)" }}
+                        transition={{ duration: 1.2, delay: 0.2 }}
+                        className="absolute inset-0 w-full h-full overflow-hidden py-3 sm:py-4 before:absolute before:inset-0 before:bg-white/[0.015] before:rounded-3xl before:-z-10"
+                    >
+                        {/* Fading edges so logos appear to slide out of nothing */}
+                        <div className="absolute inset-y-0 left-0 w-16 sm:w-32 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none" />
+                        <div className="absolute inset-y-0 right-0 w-16 sm:w-32 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none" />
+
+                        <div className="flex w-max items-center">
+                            <motion.div
+                                className="flex items-center gap-16 sm:gap-24 px-8"
+                                animate={{ x: "-33.333333%" }} // Moves exactly one set of logos
+                                transition={{ ease: "linear", duration: 55, repeat: Infinity }}
+                            >
+                                {marqueeLogos.map((logo, index) => (
+                                    <div
+                                        key={`${logo.id}-${index}`}
+                                        className="relative w-20 h-6 sm:w-28 sm:h-10 flex items-center justify-center group cursor-pointer"
+                                    >
+                                        {/* Using native img to avoid build-time errors if Next Image doesn't find the source yet */}
+                                        <img
+                                            src={logo.src}
+                                            alt={logo.name}
+                                            onError={(e) => {
+                                                // Provide invisible placeholder if file missing
+                                                e.currentTarget.src = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+                                            }}
+                                            className="w-full h-full object-contain grayscale opacity-40 mix-blend-plus-lighter hover:mix-blend-normal hover:grayscale-0 hover:opacity-100 transition-all duration-500 hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.25)]"
+                                        />
+                                    </div>
+                                ))}
+                            </motion.div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
     );
 }
 

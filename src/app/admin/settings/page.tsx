@@ -22,6 +22,7 @@ interface Settings {
         twitter: string;
         github: string;
         linkedin: string;
+        medium?: string;
     };
     adminName: string;
     adminEmail: string;
@@ -211,7 +212,8 @@ export default function SettingsPage() {
                                 {[
                                     { label: "Twitter / X", key: "twitter" as const },
                                     { label: "GitHub", key: "github" as const },
-                                    { label: "LinkedIn", key: "linkedin" as const }
+                                    { label: "LinkedIn", key: "linkedin" as const },
+                                    { label: "Medium", key: "medium" as const }
                                 ].map((link) => (
                                     <div key={link.label} className="flex items-center gap-4">
                                         <div className="w-24 text-xs font-medium text-neutral-500 uppercase tracking-wider">{link.label}</div>
