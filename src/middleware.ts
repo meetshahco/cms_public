@@ -74,7 +74,11 @@ export default auth((request) => {
     }
 
     // ─── Apply Rewrites / Redirects ───────────────────────────
-    if (isAdminSubdomain && !pathname.startsWith("/api/")) {
+    if (isAdminSubdomain) {
+        // Don't rewrite API routes - they should stay at /api/...
+        if (pathname.startsWith("/api/")) {
+            return;
+        }
         url.pathname = mappedPathname;
         return NextResponse.rewrite(url);
     }

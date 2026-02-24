@@ -44,6 +44,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 httpOnly: true,
                 sameSite: "lax",
                 path: "/",
+                // Only set domain if on the main production domain to avoid issues in Vercel previews
                 domain: domain,
                 secure: true,
             },
