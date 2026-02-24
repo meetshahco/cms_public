@@ -1,4 +1,5 @@
 import { getProject, getProjectContent, listCaseStudies } from "@/lib/cms/storage";
+export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import { ProjectDetails } from "@/components/ProjectDetails";
 import { Footer } from "@/components/Footer";

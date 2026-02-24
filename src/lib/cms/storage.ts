@@ -1,5 +1,7 @@
 import { kv } from "@vercel/kv";
 
+const isKVEnabled = Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+
 // KV Keys
 const KV_KEYS = {
     PROJECTS: "cms:projects",
@@ -75,6 +77,7 @@ function slugify(text: string): string {
 /** Generate a unique slug by appending a short timestamp suffix if needed */
 async function uniqueSlug(base: string, kvKey: string): Promise<string> {
     const slug = slugify(base) || "untitled";
+    if (!isKVEnabled) return slug;
     const existing = await kv.hget(kvKey, slug);
     if (!existing) return slug;
 
@@ -85,10 +88,16 @@ async function uniqueSlug(base: string, kvKey: string): Promise<string> {
 
 // ─── Project CRUD ─────────────────────────────────────────
 export async function listProjects(): Promise<Project[]> {
-    const projectsMap = await kv.hgetall(KV_KEYS.PROJECTS);
-    if (!projectsMap) return [];
-    const projects = Object.values(projectsMap) as Project[];
-    return projects.filter((p) => !p.archived).sort((a, b) => a.order - b.order);
+    if (!isKVEnabled) return [];
+    try {
+        const projectsMap = await kv.hgetall(KV_KEYS.PROJECTS);
+        if (!projectsMap) return [];
+        const projects = Object.values(projectsMap) as Project[];
+        return projects.filter((p) => !p.archived).sort((a, b) => a.order - b.order);
+    } catch (e) {
+        console.error("Error listing projects from KV:", e);
+        return [];
+    }
 }
 
 export async function listArchivedProjects(): Promise<Project[]> {
@@ -99,11 +108,23 @@ export async function listArchivedProjects(): Promise<Project[]> {
 }
 
 export async function getProject(id: string): Promise<Project | null> {
-    return await kv.hget<Project>(KV_KEYS.PROJECTS, id);
+    if (!isKVEnabled) return null;
+    try {
+        return await kv.hget<Project>(KV_KEYS.PROJECTS, id);
+    } catch (e) {
+        console.error(`Error getting project ${id} from KV:`, e);
+        return null;
+    }
 }
 
 export async function getProjectContent(id: string): Promise<string> {
-    return (await kv.get(KV_KEYS.content(id))) as string || "";
+    if (!isKVEnabled) return "";
+    try {
+        return (await kv.get(KV_KEYS.content(id))) as string || "";
+    } catch (e) {
+        console.error(`Error getting project content ${id} from KV:`, e);
+        return "";
+    }
 }
 
 export async function createProject(input: ProjectInput, content?: string): Promise<Project> {
@@ -186,22 +207,40 @@ export async function reorderProjects(ids: string[]): Promise<void> {
 
 // ─── Case Study CRUD ──────────────────────────────────────
 export async function listCaseStudies(parentProject?: string): Promise<CaseStudy[]> {
-    const studiesMap = await kv.hgetall(KV_KEYS.CASE_STUDIES);
-    if (!studiesMap) return [];
-    let studies = Object.values(studiesMap) as CaseStudy[];
-    studies = studies.filter((s) => !s.archived);
-    if (parentProject) {
-        studies = studies.filter((s) => s.parentProject === parentProject);
+    if (!isKVEnabled) return [];
+    try {
+        const studiesMap = await kv.hgetall(KV_KEYS.CASE_STUDIES);
+        if (!studiesMap) return [];
+        let studies = Object.values(studiesMap) as CaseStudy[];
+        studies = studies.filter((s) => !s.archived);
+        if (parentProject) {
+            studies = studies.filter((s) => s.parentProject === parentProject);
+        }
+        return studies.sort((a, b) => a.order - b.order);
+    } catch (e) {
+        console.error("Error listing case studies from KV:", e);
+        return [];
     }
-    return studies.sort((a, b) => a.order - b.order);
 }
 
 export async function getCaseStudy(slug: string): Promise<CaseStudy | null> {
-    return await kv.hget<CaseStudy>(KV_KEYS.CASE_STUDIES, slug);
+    if (!isKVEnabled) return null;
+    try {
+        return await kv.hget<CaseStudy>(KV_KEYS.CASE_STUDIES, slug);
+    } catch (e) {
+        console.error(`Error getting case study ${slug} from KV:`, e);
+        return null;
+    }
 }
 
 export async function getCaseStudyContent(slug: string): Promise<string> {
-    return (await kv.get(KV_KEYS.content(slug))) as string || "";
+    if (!isKVEnabled) return "";
+    try {
+        return (await kv.get(KV_KEYS.content(slug))) as string || "";
+    } catch (e) {
+        console.error(`Error getting case study content ${slug} from KV:`, e);
+        return "";
+    }
 }
 
 export async function createCaseStudy(input: CaseStudyInput, content: string): Promise<CaseStudy> {
@@ -287,8 +326,14 @@ const DEFAULT_SETTINGS: Settings = {
 };
 
 export async function getSettings(): Promise<Settings> {
-    const settings = await kv.get<Settings>(KV_KEYS.SETTINGS);
-    return settings || DEFAULT_SETTINGS;
+    if (!isKVEnabled) return DEFAULT_SETTINGS;
+    try {
+        const settings = await kv.get<Settings>(KV_KEYS.SETTINGS);
+        return settings || DEFAULT_SETTINGS;
+    } catch (e) {
+        console.error("Error getting settings from KV:", e);
+        return DEFAULT_SETTINGS;
+    }
 }
 
 export async function updateSettings(updates: SettingsInput): Promise<Settings> {

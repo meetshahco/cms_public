@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/Navbar";
+export const dynamic = "force-dynamic";
 import { ContactAnimationProvider } from "@/context/ContactAnimationContext";
 import { getSettings } from "@/lib/cms/storage";
 import { AboutClient } from "./AboutClient";
