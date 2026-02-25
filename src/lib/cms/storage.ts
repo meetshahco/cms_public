@@ -2,27 +2,24 @@ import { kv } from "@vercel/kv";
 
 // ─── Guest Mode Logic ─────────────────────────────────────
 const getIsGuestMode = async () => {
-    // 1. Check if we're in a browser environment
+    // 1. Browser check
     if (typeof window !== "undefined") {
         return window.location.hostname.includes("guest.");
     }
 
-    // 2. Check server-side headers (Next.js 15+ Server Components)
+    // 2. Server check with extreme safety
     try {
-        const { headers } = await import("next/headers");
-        const headersList = await headers();
-
-        // Priority 1: Check for the custom header injected by our middleware
+        // We use require to avoid issues with standard ESM bundling/analysis
+        const { headers } = require("next/headers");
+        const headersList = headers();
         if (headersList.get("x-guest-mode") === "true") return true;
 
-        // Priority 2: Check standard host header
         const host = headersList.get("host") || "";
         if (host.includes("guest.")) return true;
     } catch (e) {
-        // Expected during static generation
+        // Fallback or static generation
     }
 
-    // 3. Fallback to build-time environment variable
     return process.env.NEXT_PUBLIC_GUEST_MODE === "true";
 };
 

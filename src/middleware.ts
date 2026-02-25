@@ -9,8 +9,7 @@ export default auth((request) => {
     const hostname = request.headers.get("host") || "";
     const xForwardedHost = request.headers.get("x-forwarded-host");
 
-    // Check hostname from various sources for robustness
-    const currentHost = xForwardedHost || hostname || url.hostname;
+    const currentHost = request.headers.get("host") || "";
     const pathname = url.pathname;
 
     // v4 - Early return for AuthJS internal routes to avoid middleware interference
@@ -21,15 +20,13 @@ export default auth((request) => {
     }
 
     const isGuestSubdomain =
-        currentHost === "guest.meetshah.co" ||
+        currentHost.startsWith("guest.meetshah.co") ||
         currentHost.startsWith("guest.localhost");
 
     const isAdminSubdomain =
         !isGuestSubdomain && (
-            currentHost === ADMIN_DOMAIN ||
-            currentHost.startsWith("admin.localhost") ||
-            currentHost.endsWith(`.${ADMIN_DOMAIN}`) ||
-            currentHost.includes("admin.meetshah.co")
+            currentHost.startsWith("admin.meetshah.co") ||
+            currentHost.startsWith("admin.localhost")
         );
 
     // Check authentication
