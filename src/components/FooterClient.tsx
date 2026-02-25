@@ -145,10 +145,10 @@ export function FooterClient({ settings }: { settings: Settings }) {
                 {/* CTA */}
                 <div className="flex flex-col items-center md:items-end space-y-4">
                     <Link
-                        href="/contact"
+                        href="https://www.meetshah.co/contact"
                         className="group inline-flex h-10 items-center gap-2 rounded-full transition-all duration-700 overflow-hidden bg-transparent text-neutral-400 font-medium text-sm px-6 ring-1 ring-inset ring-white/20 hover:ring-white/0 hover:bg-white hover:text-black hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] hover:scale-105"
                     >
-                        Get in touch
+                        Let's talk
                         <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                     </Link>
                 </div>

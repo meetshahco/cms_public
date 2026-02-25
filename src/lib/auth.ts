@@ -14,14 +14,39 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 email: { label: "Email", type: "email" },
                 password: { label: "Password", type: "password" },
             },
-            async authorize(credentials) {
+            async authorize(credentials, request) {
                 const email = credentials?.email as string;
                 const password = credentials?.password as string;
 
+                // Inspect headers to determine which portal we are authenticating on
+                const headersList = request?.headers;
+                let origin = "";
+                let host = "";
+                let referer = "";
+                // NextAuth request object header structure can be a bit variable depending on adapter
+                if (headersList instanceof Headers) {
+                    origin = headersList.get("origin") || "";
+                    host = headersList.get("host") || "";
+                    referer = headersList.get("referer") || "";
+                } else if (headersList) {
+                    origin = (headersList as any).origin || "";
+                    host = (headersList as any).host || "";
+                    referer = (headersList as any).referer || (headersList as any).Referer || "";
+                }
+
+                const isGuestPortal = origin.includes("guest.") || host.includes("guest.") || referer.includes("/simple-cms");
+                const isAdminPortal = origin.includes("admin.") || host.includes("admin.") || (referer.includes("/admin") && !referer.includes("/simple-cms"));
+
+                // 1. MASTER ADMIN LOGIC
                 if (
                     email === process.env.CMS_ADMIN_EMAIL &&
                     password === process.env.CMS_ADMIN_PASSWORD
                 ) {
+                    // Prevent master login on the Guest portal to mitigate cookie-poisoning/accidental exposure
+                    if (isGuestPortal) {
+                        // Throwing a specific string to be caught by the login page and redirected
+                        throw new Error("Trigger404");
+                    }
                     return {
                         id: "1",
                         name: "Meet Shah",
@@ -29,8 +54,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     };
                 }
 
-                // Guest Login (admin/admin)
+                // 2. GUEST LOGIN (admin/admin)
                 if (email === "admin" && password === "admin") {
+                    // Prevent guest login on the main Admin portal
+                    if (isAdminPortal && !isGuestPortal) {
+                        throw new Error("Trigger404");
+                    }
                     return {
                         id: "guest",
                         name: "Guest User",

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { adminPath, isAdminSubdomain } from "@/lib/admin-utils";
 import {
     LayoutDashboard,
@@ -28,8 +28,11 @@ export default function AdminLayout({
     children: React.ReactNode;
 }) {
     const pathname = usePathname();
+    const { data: session } = useSession();
     const onSubdomain = isAdminSubdomain();
     const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+
+    const isGuest = session?.user?.email === "guest@meetshah.co";
 
     // Don't show sidebar on login page
     const loginPath = onSubdomain ? "/login" : "/admin/login";
@@ -42,7 +45,7 @@ export default function AdminLayout({
             {/* Mobile Header */}
             <header className="md:hidden fixed top-0 left-0 right-0 h-14 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/[0.06] flex items-center justify-between px-4 z-40">
                 <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center">
-                    <span className="text-xs font-bold text-white">M</span>
+                    <span className="text-xs font-bold text-white">{isGuest ? "G" : "M"}</span>
                 </div>
                 <button
                     onClick={() => signOut({ callbackUrl: adminPath("/login") })}
@@ -56,8 +59,8 @@ export default function AdminLayout({
             <aside className="hidden md:flex w-[72px] border-r border-white/[0.06] flex-col items-center bg-[#0a0a0a] fixed h-screen z-40">
                 {/* Logo */}
                 <div className="pt-5 pb-4 border-b border-white/[0.06] w-full flex justify-center">
-                    <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
-                        <span className="text-sm font-bold text-white">M</span>
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-white/20 to-white/5 flex items-center justify-center shadow-lg border border-white/10">
+                        <span className="text-sm font-bold text-white">{isGuest ? "G" : "M"}</span>
                     </div>
                 </div>
 

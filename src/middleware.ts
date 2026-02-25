@@ -56,8 +56,10 @@ export default auth((request) => {
         if (pathname.startsWith("/api/")) {
             mappedPathname = pathname;
         } else if (pathname === "/") {
-            // Guest root shows the landing page, Admin root shows the dashboard
-            mappedPathname = isGuestSubdomain ? "/simple-cms" : "/admin";
+            // Guest root shows landing page if not logged in, but admin dashboard if logged in.
+            // Admin root always shows dashboard.
+            const isLoggedIn = !!request.auth;
+            mappedPathname = (isGuestSubdomain && !isLoggedIn) ? "/simple-cms" : "/admin";
         } else {
             mappedPathname = `/admin${pathname}`;
         }

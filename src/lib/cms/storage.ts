@@ -15,12 +15,21 @@ const getIsGuestMode = async () => {
 
         const host = h.get("host") || "";
         if (host.includes("guest.")) return true;
+
+        // 3. Check Session: If the logged in user is the guest demo user, force guest mode.
+        // This prevents the demo login form on localhost from leaking the private portfolio data.
+        const { auth } = await import("@/lib/auth");
+        const session = await auth();
+        if (session?.user?.email === "guest@meetshah.co") {
+            return true;
+        }
     } catch (e) {
         // Fallback or static generation
     }
 
     return process.env.NEXT_PUBLIC_GUEST_MODE === "true";
 };
+
 
 // In-memory store for guest mode (resets on server restart/cold start)
 // For a true "reset on refresh" we would need client-side state,

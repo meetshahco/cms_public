@@ -24,6 +24,12 @@ export function LoginForm({ prefill = false }: { prefill?: boolean }) {
         });
 
         if (result?.error) {
+            // Check if backend specifically requested a generic 404 obfuscation redirect
+            if (result.error.includes("Trigger404")) {
+                router.push("/404");
+                return;
+            }
+
             setError("Invalid email or password");
             setLoading(false);
         } else {

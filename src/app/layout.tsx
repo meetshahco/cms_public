@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Outfit } from "next/font/google";
+import { Inter, Outfit, Caveat } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
@@ -14,7 +14,14 @@ const outfit = Outfit({
   subsets: ["latin"],
 });
 
+const caveat = Caveat({
+  variable: "--font-caveat",
+  subsets: ["latin"],
+});
+
 import { getSettings } from "@/lib/cms/storage";
+
+import { Providers } from "@/components/auth/Providers";
 
 export const dynamic = "force-dynamic";
 
@@ -40,11 +47,13 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${outfit.variable} antialiased bg-[#0a0a0a] text-foreground`}
+        className={`${inter.variable} ${outfit.variable} ${caveat.variable} antialiased bg-[#0a0a0a] text-foreground`}
       >
-        {children}
-        <Analytics />
-        <SpeedInsights />
+        <Providers>
+          {children}
+          <Analytics />
+          <SpeedInsights />
+        </Providers>
       </body>
     </html>
   );
