@@ -55,8 +55,11 @@ export default auth((request) => {
         // For API routes, we don't want to prefix with /admin
         if (pathname.startsWith("/api/")) {
             mappedPathname = pathname;
+        } else if (pathname === "/") {
+            // Guest root shows the landing page, Admin root shows the dashboard
+            mappedPathname = isGuestSubdomain ? "/simple-cms" : "/admin";
         } else {
-            mappedPathname = pathname === "/" ? "/admin" : `/admin${pathname}`;
+            mappedPathname = `/admin${pathname}`;
         }
     }
 

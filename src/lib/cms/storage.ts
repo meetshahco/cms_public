@@ -9,8 +9,7 @@ const getIsGuestMode = async () => {
 
     // 2. Server check with extreme safety
     try {
-        // We use require to avoid issues with standard ESM bundling/analysis
-        const { headers } = require("next/headers");
+        const { headers } = await import("next/headers");
         const h = await headers(); // FIX: added await
         if (h.get("x-guest-mode") === "true") return true;
 

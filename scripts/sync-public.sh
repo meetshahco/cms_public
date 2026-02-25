@@ -25,7 +25,8 @@ rm -rf src/context
 # 4. Swap Home Page
 echo "🏠 Swapping Home Page..."
 rm src/app/page.tsx
-mv src/app/public-home.tsx src/app/page.tsx
+mv src/app/simple-cms/page.tsx src/app/page.tsx
+rm -rf src/app/simple-cms
 
 # 5. Remove Portfolio-specific components
 echo "🧩 Removing personal components..."
@@ -43,12 +44,11 @@ rm src/components/GlobalLoader.tsx
 
 # 6. Sanitize Middleware (remove portfolio redirects/logic)
 echo "🔒 Sanitizing Middleware..."
-# We'll just keep the middleware as is for now since it mostly handles subdomains and auth,
-# but we might want to simplify it in the future for the public release.
+# We'll keep the middleware but the sync ensures / maps to the new landing page.
 
 # 7. Update Metadata / Package.json
 echo "📝 Updating manifest..."
-sed -i '' 's/"name": "meet-shah-portfolio"/"name": "studio-cms"/g' package.json
+sed -i '' 's/"name": "meet-shah-portfolio"/"name": "simple-cms"/g' package.json
 
 # 8. Commit and Push
 echo "⬆️ Pushing to public repository..."
