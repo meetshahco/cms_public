@@ -61,17 +61,17 @@ export default function LoginPage() {
                             htmlFor="email"
                             className="block text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wider"
                         >
-                            Email
+                            Email or Username
                         </label>
                         <input
                             id="email"
-                            type="email"
+                            type="text"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            autoComplete="email"
+                            autoComplete="username"
                             className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder-neutral-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent transition-all"
-                            placeholder="you@email.com"
+                            placeholder="you@email.com or admin"
                         />
                     </div>
 
