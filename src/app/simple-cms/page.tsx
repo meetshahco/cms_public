@@ -202,6 +202,8 @@ export default function SimpleCMSLanding() {
                                         <Link
                                             href="https://github.com/meetshahco/cms_public"
                                             target="_blank"
+                                            data-track="View Code Click"
+                                            data-track-props='{"location": "Simple CMS Landing"}'
                                             className="flex items-center gap-2 px-5 py-2.5 bg-white text-black rounded-full font-medium hover:bg-neutral-200 text-sm transition-all active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.3)]"
                                         >
                                             <span>Fork on GitHub</span>

@@ -87,6 +87,8 @@ export function LoginForm({ prefill = false }: { prefill?: boolean }) {
             <button
                 type="submit"
                 disabled={loading}
+                data-track="Get Started Click"
+                data-track-props='{"location": "Login Form"}'
                 className="w-full py-3 px-4 bg-white text-black font-medium text-sm rounded-xl hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-[#0a0a0a] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 {loading ? (

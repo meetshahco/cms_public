@@ -22,6 +22,7 @@ const caveat = Caveat({
 import { getSettings } from "@/lib/cms/storage";
 
 import { Providers } from "@/components/auth/Providers";
+import ClarityAnalytics from "@/components/analytics/ClarityAnalytics";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +54,7 @@ export default async function RootLayout({
           {children}
           <Analytics />
           <SpeedInsights />
+          <ClarityAnalytics />
         </Providers>
       </body>
     </html>
