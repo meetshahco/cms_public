@@ -1,5 +1,4 @@
 import { kv } from "@vercel/kv";
-import { headers } from "next/headers";
 
 // ─── Guest Mode Logic ─────────────────────────────────────
 const getIsGuestMode = async () => {
@@ -8,13 +7,16 @@ const getIsGuestMode = async () => {
         return window.location.hostname.includes("guest.");
     }
 
-    // 2. Check server-side headers (Next.js 16+ Server Actions/Components)
+    // 2. Check server-side headers (Next.js 15+ Server Components)
+    // We use a try-catch and dynamic import to avoid issues in client-side bundles
+    // or static generation phases.
     try {
+        const { headers } = await import("next/headers");
         const headersList = await headers();
         const host = headersList.get("host") || "";
         if (host.includes("guest.")) return true;
     } catch (e) {
-        // Headers might not be available in some static generation contexts
+        // This is expected during static generation or in client-side builds
     }
 
     // 3. Fallback to build-time environment variable
