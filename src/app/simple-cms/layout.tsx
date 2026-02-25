@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
     title: "Simple CMS | Your Portfolio's New Best Friend",
-    description: "Built with Next.js, Vercel KV, and Tiptap. Designed for Designers, PMs, and Makers who build high-end product portfolios.",
+    description: "The premier open-source CMS for Product Designers and PMs. Build high-end portfolios using Next.js and Vercel KV with native blocks for metrics, interactive mockups, and before/after frames. Engineered for makers who need more than a blog—create data-driven product stories with a Tiptap-powered editor.",
     openGraph: {
         title: "Simple CMS | Meet Shah",
-        description: "Your Portfolio's New Best Friend. Designed for Designers, PMs, and Makers who build high-end product portfolios.",
+        description: "The premier open-source CMS for Product Designers and PMs. Build high-end portfolios using Next.js and Vercel KV with native blocks for metrics, interactive mockups, and before/after frames. Engineered for makers who need more than a blog—create data-driven product stories with a Tiptap-powered editor.",
         type: "website",
         images: [
             {
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     twitter: {
         card: "summary_large_image",
         title: "Simple CMS | Your Portfolio's New Best Friend",
-        description: "Designed for Designers, PMs, and Makers who build high-end product portfolios.",
+        description: "The premier open-source CMS for Product Designers and PMs.",
     },
 };
 
