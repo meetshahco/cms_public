@@ -16,6 +16,8 @@ const outfit = Outfit({
 
 import { getSettings } from "@/lib/cms/storage";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings().catch(() => null);
 

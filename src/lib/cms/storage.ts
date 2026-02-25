@@ -11,10 +11,10 @@ const getIsGuestMode = async () => {
     try {
         // We use require to avoid issues with standard ESM bundling/analysis
         const { headers } = require("next/headers");
-        const headersList = headers();
-        if (headersList.get("x-guest-mode") === "true") return true;
+        const h = await headers(); // FIX: added await
+        if (h.get("x-guest-mode") === "true") return true;
 
-        const host = headersList.get("host") || "";
+        const host = h.get("host") || "";
         if (host.includes("guest.")) return true;
     } catch (e) {
         // Fallback or static generation
@@ -267,6 +267,10 @@ export async function deleteProject(id: string): Promise<boolean> {
 }
 
 export async function permanentlyDeleteProject(id: string): Promise<boolean> {
+    if (await getIsGuestMode()) {
+        guestStore.deleteProject(id);
+        return true;
+    }
     await kv.hdel(KV_KEYS.PROJECTS, id);
     await kv.del(KV_KEYS.content(id));
     return true;
@@ -279,6 +283,11 @@ export async function toggleProjectStar(id: string): Promise<Project | null> {
 }
 
 export async function reorderProjects(ids: string[]): Promise<void> {
+    if (await getIsGuestMode()) {
+        // Reordering in guest mode is currently UI-only or handled by memory store if needed
+        // For now, prevent KV access
+        return;
+    }
     const now = new Date().toISOString();
     const projectsMap = await kv.hgetall(KV_KEYS.PROJECTS);
     if (!projectsMap) return;
@@ -406,6 +415,10 @@ export async function deleteCaseStudy(slug: string): Promise<boolean> {
 }
 
 export async function permanentlyDeleteCaseStudy(slug: string): Promise<boolean> {
+    if (await getIsGuestMode()) {
+        guestStore.deleteCaseStudy(slug);
+        return true;
+    }
     await kv.hdel(KV_KEYS.CASE_STUDIES, slug);
     await kv.del(KV_KEYS.content(slug));
     return true;
