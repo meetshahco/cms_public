@@ -20,8 +20,8 @@ export default auth((request) => {
     }
 
     const isGuestSubdomain =
-        currentHost.startsWith("guest.meetshah.co") ||
-        currentHost.startsWith("guest.localhost");
+        currentHost.startsWith("simplecms.meetshah.co") ||
+        currentHost.startsWith("simplecms.localhost");
 
     const isAdminSubdomain =
         !isGuestSubdomain && (

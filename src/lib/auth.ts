@@ -34,7 +34,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     referer = (headersList as any).referer || (headersList as any).Referer || "";
                 }
 
-                const isGuestPortal = origin.includes("guest.") || host.includes("guest.") || referer.includes("/simple-cms");
+                const isGuestPortal = origin.includes("simplecms.") || host.includes("simplecms.") || referer.includes("/simple-cms");
                 const isAdminPortal = origin.includes("admin.") || host.includes("admin.") || (referer.includes("/admin") && !referer.includes("/simple-cms"));
 
                 // 1. MASTER ADMIN LOGIC

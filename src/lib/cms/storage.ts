@@ -4,7 +4,7 @@ import { kv } from "@vercel/kv";
 const getIsGuestMode = async () => {
     // 1. Browser check
     if (typeof window !== "undefined") {
-        return window.location.hostname.includes("guest.");
+        return window.location.hostname.includes("simplecms.");
     }
 
     // 2. Server check with extreme safety
@@ -13,8 +13,8 @@ const getIsGuestMode = async () => {
         const h = await headers(); // FIX: added await
         if (h.get("x-guest-mode") === "true") return true;
 
-        const host = h.get("host") || "";
-        if (host.includes("guest.")) return true;
+        const host = h.get("host") || h.get("x-forwarded-host") || "";
+        if (host.includes("simplecms.")) return true;
 
         // 3. Check Session: If the logged in user is the guest demo user, force guest mode.
         // This prevents the demo login form on localhost from leaking the private portfolio data.

@@ -18,8 +18,8 @@ export function isAdminSubdomain(): boolean {
     return (
         hostname === ADMIN_DOMAIN ||
         hostname === "admin.localhost" ||
-        hostname === "guest.meetshah.co" ||
-        hostname.startsWith("guest.localhost") ||
+        hostname === "simplecms.meetshah.co" ||
+        hostname.startsWith("simplecms.localhost") ||
         hostname.endsWith(`.${ADMIN_DOMAIN}`) ||
         hostname.includes("admin.meetshah.co")
     );
