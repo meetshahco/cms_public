@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "sync-public": "zsh scripts/sync-public.sh"
   },
   "dependencies": {
     "@tailwindcss/container-queries": "^0.1.1",
