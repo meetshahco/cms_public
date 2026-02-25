@@ -20,11 +20,17 @@ export default auth((request) => {
         return response;
     }
 
+    const isGuestSubdomain =
+        currentHost === "guest.meetshah.co" ||
+        currentHost.startsWith("guest.localhost");
+
     const isAdminSubdomain =
-        currentHost === ADMIN_DOMAIN ||
-        currentHost.startsWith("admin.localhost") ||
-        currentHost.endsWith(`.${ADMIN_DOMAIN}`) ||
-        currentHost.includes("admin.meetshah.co");
+        !isGuestSubdomain && (
+            currentHost === ADMIN_DOMAIN ||
+            currentHost.startsWith("admin.localhost") ||
+            currentHost.endsWith(`.${ADMIN_DOMAIN}`) ||
+            currentHost.includes("admin.meetshah.co")
+        );
 
     // Check authentication
     const isLoggedIn = !!request.auth;
@@ -68,9 +74,9 @@ export default auth((request) => {
 
     // 2. Protect /admin routes
     if (isOnAdminUI && !isOnLogin && !isLoggedIn) {
-        // If we're on the subdomain and trying to access an admin page while not logged in,
+        // If we're on a subdomain and trying to access an admin page while not logged in,
         // redirect to the login page (on the subdomain)
-        if (isAdminSubdomain) {
+        if (isAdminSubdomain || isGuestSubdomain) {
             return NextResponse.redirect(new URL("/login", request.url));
         }
         // Otherwise, standard redirect
@@ -79,14 +85,14 @@ export default auth((request) => {
 
     // 3. Redirect away from login if already logged in
     if (isOnLogin && isLoggedIn) {
-        if (isAdminSubdomain) {
+        if (isAdminSubdomain || isGuestSubdomain) {
             return NextResponse.redirect(new URL("/", request.url));
         }
         return NextResponse.redirect(new URL("/admin", request.url));
     }
 
     // ─── Apply Rewrites / Redirects ───────────────────────────
-    if (isAdminSubdomain) {
+    if (isAdminSubdomain || isGuestSubdomain) {
         // Don't rewrite API routes - they should stay at /api/...
         if (pathname.startsWith("/api/")) {
             return;
@@ -96,7 +102,7 @@ export default auth((request) => {
     }
 
     // ─── Main domain: redirect /admin access to subdomain ──
-    if (!isAdminSubdomain && pathname.startsWith("/admin")) {
+    if (!isAdminSubdomain && !isGuestSubdomain && pathname.startsWith("/admin")) {
         // In local development, don't force redirect to production admin domain
         if (currentHost.includes("localhost") || currentHost.includes("127.0.0.1") || currentHost.startsWith("192.168.")) {
             return;

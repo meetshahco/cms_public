@@ -28,6 +28,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         email: email,
                     };
                 }
+
+                // Guest Login (admin/admin)
+                if (email === "admin" && password === "admin") {
+                    return {
+                        id: "guest",
+                        name: "Guest User",
+                        email: "guest@meetshah.co",
+                    };
+                }
+
                 return null;
             },
         }),

@@ -1,5 +1,55 @@
 import { kv } from "@vercel/kv";
 
+// ─── Guest Mode Logic ─────────────────────────────────────
+const getIsGuestMode = () => {
+    if (typeof window !== "undefined") {
+        return window.location.hostname.includes("guest.");
+    }
+    // For server-side, we'll need to check headers in the actual calls
+    // but for now we'll assume a global toggle or environment variable
+    return process.env.NEXT_PUBLIC_GUEST_MODE === "true";
+};
+
+// In-memory store for guest mode (resets on server restart/cold start)
+// For a true "reset on refresh" we would need client-side state,
+// but for a demo, server-side in-memory is a good middle ground.
+class VolatileStorage {
+    private projects: Record<string, any> = {};
+    private content: Record<string, string> = {};
+    private caseStudies: Record<string, any> = {};
+    private settings: any = null;
+
+    constructor() {
+        this.reset();
+    }
+
+    reset() {
+        this.projects = {};
+        this.content = {};
+        this.caseStudies = {};
+        this.settings = null;
+    }
+
+    getProjects() { return Object.values(this.projects); }
+    getProject(id: string) { return this.projects[id]; }
+    setProject(id: string, data: any) { this.projects[id] = data; }
+    deleteProject(id: string) { delete this.projects[id]; }
+
+    getContent(id: string) { return this.content[id] || ""; }
+    setContent(id: string, data: string) { this.content[id] = data; }
+
+    getCaseStudies() { return Object.values(this.caseStudies); }
+    getCaseStudy(slug: string) { return this.caseStudies[slug]; }
+    setCaseStudy(slug: string, data: any) { this.caseStudies[slug] = data; }
+    deleteCaseStudy(slug: string) { delete this.caseStudies[slug]; }
+
+    getSettings() { return this.settings; }
+    setSettings(data: any) { this.settings = data; }
+}
+
+const guestStore = new VolatileStorage();
+
+// ─── KV Logic ─────────────────────────────────────────────
 const isKVEnabled = Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
 
 // KV Keys
@@ -88,6 +138,9 @@ async function uniqueSlug(base: string, kvKey: string): Promise<string> {
 
 // ─── Project CRUD ─────────────────────────────────────────
 export async function listProjects(): Promise<Project[]> {
+    if (getIsGuestMode()) {
+        return guestStore.getProjects().filter((p) => !p.archived).sort((a, b) => a.order - b.order);
+    }
     if (!isKVEnabled) return [];
     try {
         const projectsMap = await kv.hgetall(KV_KEYS.PROJECTS);
@@ -101,6 +154,9 @@ export async function listProjects(): Promise<Project[]> {
 }
 
 export async function listArchivedProjects(): Promise<Project[]> {
+    if (getIsGuestMode()) {
+        return guestStore.getProjects().filter((p) => p.archived).sort((a, b) => a.order - b.order);
+    }
     const projectsMap = await kv.hgetall(KV_KEYS.PROJECTS);
     if (!projectsMap) return [];
     const projects = Object.values(projectsMap) as Project[];
@@ -108,6 +164,9 @@ export async function listArchivedProjects(): Promise<Project[]> {
 }
 
 export async function getProject(id: string): Promise<Project | null> {
+    if (getIsGuestMode()) {
+        return guestStore.getProject(id) || null;
+    }
     if (!isKVEnabled) return null;
     try {
         return await kv.hget<Project>(KV_KEYS.PROJECTS, id);
@@ -118,6 +177,9 @@ export async function getProject(id: string): Promise<Project | null> {
 }
 
 export async function getProjectContent(id: string): Promise<string> {
+    if (getIsGuestMode()) {
+        return guestStore.getContent(id);
+    }
     if (!isKVEnabled) return "";
     try {
         return (await kv.get(KV_KEYS.content(id))) as string || "";
@@ -140,6 +202,12 @@ export async function createProject(input: ProjectInput, content?: string): Prom
         updatedAt: now,
     };
 
+    if (getIsGuestMode()) {
+        guestStore.setProject(id, project);
+        if (content !== undefined) guestStore.setContent(id, content);
+        return project;
+    }
+
     await kv.hset(KV_KEYS.PROJECTS, { [id]: project });
     if (content !== undefined) {
         await kv.set(KV_KEYS.content(id), content);
@@ -157,6 +225,12 @@ export async function updateProject(id: string, updates: Partial<ProjectInput>, 
         id, // don't allow id change
         updatedAt: new Date().toISOString(),
     };
+
+    if (getIsGuestMode()) {
+        guestStore.setProject(id, updated);
+        if (content !== undefined) guestStore.setContent(id, content);
+        return updated;
+    }
 
     await kv.hset(KV_KEYS.PROJECTS, { [id]: updated });
     if (content !== undefined) {
@@ -207,6 +281,13 @@ export async function reorderProjects(ids: string[]): Promise<void> {
 
 // ─── Case Study CRUD ──────────────────────────────────────
 export async function listCaseStudies(parentProject?: string): Promise<CaseStudy[]> {
+    if (getIsGuestMode()) {
+        let studies = guestStore.getCaseStudies().filter((s) => !s.archived);
+        if (parentProject) {
+            studies = studies.filter((s) => s.parentProject === parentProject);
+        }
+        return studies.sort((a, b) => a.order - b.order);
+    }
     if (!isKVEnabled) return [];
     try {
         const studiesMap = await kv.hgetall(KV_KEYS.CASE_STUDIES);
@@ -224,6 +305,9 @@ export async function listCaseStudies(parentProject?: string): Promise<CaseStudy
 }
 
 export async function getCaseStudy(slug: string): Promise<CaseStudy | null> {
+    if (getIsGuestMode()) {
+        return guestStore.getCaseStudy(slug) || null;
+    }
     if (!isKVEnabled) return null;
     try {
         return await kv.hget<CaseStudy>(KV_KEYS.CASE_STUDIES, slug);
@@ -234,6 +318,9 @@ export async function getCaseStudy(slug: string): Promise<CaseStudy | null> {
 }
 
 export async function getCaseStudyContent(slug: string): Promise<string> {
+    if (getIsGuestMode()) {
+        return guestStore.getContent(slug);
+    }
     if (!isKVEnabled) return "";
     try {
         return (await kv.get(KV_KEYS.content(slug))) as string || "";
@@ -253,6 +340,12 @@ export async function createCaseStudy(input: CaseStudyInput, content: string): P
         order: existing.length,
     };
 
+    if (getIsGuestMode()) {
+        guestStore.setCaseStudy(slug, caseStudy);
+        guestStore.setContent(slug, content);
+        return caseStudy;
+    }
+
     await kv.hset(KV_KEYS.CASE_STUDIES, { [slug]: caseStudy });
     await kv.set(KV_KEYS.content(slug), content);
     return caseStudy;
@@ -271,6 +364,12 @@ export async function updateCaseStudy(
         ...updates,
         slug, // don't allow slug change
     };
+
+    if (getIsGuestMode()) {
+        guestStore.setCaseStudy(slug, updated);
+        if (content !== undefined) guestStore.setContent(slug, content);
+        return updated;
+    }
 
     await kv.hset(KV_KEYS.CASE_STUDIES, { [slug]: updated });
     if (content !== undefined) {
@@ -326,6 +425,9 @@ const DEFAULT_SETTINGS: Settings = {
 };
 
 export async function getSettings(): Promise<Settings> {
+    if (getIsGuestMode()) {
+        return guestStore.getSettings() || DEFAULT_SETTINGS;
+    }
     if (!isKVEnabled) return DEFAULT_SETTINGS;
     try {
         const settings = await kv.get<Settings>(KV_KEYS.SETTINGS);
@@ -346,6 +448,11 @@ export async function updateSettings(updates: SettingsInput): Promise<Settings> 
             ...updates.socialLinks,
         },
     };
+
+    if (getIsGuestMode()) {
+        guestStore.setSettings(updated);
+        return updated;
+    }
 
     await kv.set(KV_KEYS.SETTINGS, updated);
     return updated;
