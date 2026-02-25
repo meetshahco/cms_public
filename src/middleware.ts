@@ -42,14 +42,14 @@ export default auth((request) => {
     let mappedPathname = pathname;
 
     // ─── Subdomain routing ───────────────────────────────────
-    if (isAdminSubdomain) {
+    if (isAdminSubdomain || isGuestSubdomain) {
         // Skip internal Next.js routes and static assets
         if (pathname.startsWith("/_next/") || pathname === "/favicon.ico") {
             return;
         }
 
-        // Prevent double-prefixing: if someone visits admin.meetshah.co/admin/...
-        // redirect them to admin.meetshah.co/... (strip the /admin prefix)
+        // Prevent double-prefixing: if someone visits [subdomain]/admin/...
+        // redirect them to [subdomain]/... (strip the /admin prefix)
         if (pathname.startsWith("/admin")) {
             const cleanPath = pathname.replace(/^\/admin/, "") || "/";
             return NextResponse.redirect(new URL(cleanPath, request.url));
