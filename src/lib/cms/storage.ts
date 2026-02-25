@@ -1,12 +1,23 @@
 import { kv } from "@vercel/kv";
+import { headers } from "next/headers";
 
 // ─── Guest Mode Logic ─────────────────────────────────────
-const getIsGuestMode = () => {
+const getIsGuestMode = async () => {
+    // 1. Check if we're in a browser environment
     if (typeof window !== "undefined") {
         return window.location.hostname.includes("guest.");
     }
-    // For server-side, we'll need to check headers in the actual calls
-    // but for now we'll assume a global toggle or environment variable
+
+    // 2. Check server-side headers (Next.js 16+ Server Actions/Components)
+    try {
+        const headersList = await headers();
+        const host = headersList.get("host") || "";
+        if (host.includes("guest.")) return true;
+    } catch (e) {
+        // Headers might not be available in some static generation contexts
+    }
+
+    // 3. Fallback to build-time environment variable
     return process.env.NEXT_PUBLIC_GUEST_MODE === "true";
 };
 
@@ -127,6 +138,7 @@ function slugify(text: string): string {
 /** Generate a unique slug by appending a short timestamp suffix if needed */
 async function uniqueSlug(base: string, kvKey: string): Promise<string> {
     const slug = slugify(base) || "untitled";
+    if (await getIsGuestMode()) return slug; // No unique check needed in demo
     if (!isKVEnabled) return slug;
     const existing = await kv.hget(kvKey, slug);
     if (!existing) return slug;
@@ -138,7 +150,7 @@ async function uniqueSlug(base: string, kvKey: string): Promise<string> {
 
 // ─── Project CRUD ─────────────────────────────────────────
 export async function listProjects(): Promise<Project[]> {
-    if (getIsGuestMode()) {
+    if (await getIsGuestMode()) {
         return guestStore.getProjects().filter((p) => !p.archived).sort((a, b) => a.order - b.order);
     }
     if (!isKVEnabled) return [];
@@ -154,7 +166,7 @@ export async function listProjects(): Promise<Project[]> {
 }
 
 export async function listArchivedProjects(): Promise<Project[]> {
-    if (getIsGuestMode()) {
+    if (await getIsGuestMode()) {
         return guestStore.getProjects().filter((p) => p.archived).sort((a, b) => a.order - b.order);
     }
     const projectsMap = await kv.hgetall(KV_KEYS.PROJECTS);
@@ -164,7 +176,7 @@ export async function listArchivedProjects(): Promise<Project[]> {
 }
 
 export async function getProject(id: string): Promise<Project | null> {
-    if (getIsGuestMode()) {
+    if (await getIsGuestMode()) {
         return guestStore.getProject(id) || null;
     }
     if (!isKVEnabled) return null;
@@ -177,7 +189,7 @@ export async function getProject(id: string): Promise<Project | null> {
 }
 
 export async function getProjectContent(id: string): Promise<string> {
-    if (getIsGuestMode()) {
+    if (await getIsGuestMode()) {
         return guestStore.getContent(id);
     }
     if (!isKVEnabled) return "";
@@ -202,7 +214,7 @@ export async function createProject(input: ProjectInput, content?: string): Prom
         updatedAt: now,
     };
 
-    if (getIsGuestMode()) {
+    if (await getIsGuestMode()) {
         guestStore.setProject(id, project);
         if (content !== undefined) guestStore.setContent(id, content);
         return project;
@@ -226,7 +238,7 @@ export async function updateProject(id: string, updates: Partial<ProjectInput>, 
         updatedAt: new Date().toISOString(),
     };
 
-    if (getIsGuestMode()) {
+    if (await getIsGuestMode()) {
         guestStore.setProject(id, updated);
         if (content !== undefined) guestStore.setContent(id, content);
         return updated;
@@ -281,7 +293,7 @@ export async function reorderProjects(ids: string[]): Promise<void> {
 
 // ─── Case Study CRUD ──────────────────────────────────────
 export async function listCaseStudies(parentProject?: string): Promise<CaseStudy[]> {
-    if (getIsGuestMode()) {
+    if (await getIsGuestMode()) {
         let studies = guestStore.getCaseStudies().filter((s) => !s.archived);
         if (parentProject) {
             studies = studies.filter((s) => s.parentProject === parentProject);
@@ -305,7 +317,7 @@ export async function listCaseStudies(parentProject?: string): Promise<CaseStudy
 }
 
 export async function getCaseStudy(slug: string): Promise<CaseStudy | null> {
-    if (getIsGuestMode()) {
+    if (await getIsGuestMode()) {
         return guestStore.getCaseStudy(slug) || null;
     }
     if (!isKVEnabled) return null;
@@ -318,7 +330,7 @@ export async function getCaseStudy(slug: string): Promise<CaseStudy | null> {
 }
 
 export async function getCaseStudyContent(slug: string): Promise<string> {
-    if (getIsGuestMode()) {
+    if (await getIsGuestMode()) {
         return guestStore.getContent(slug);
     }
     if (!isKVEnabled) return "";
@@ -340,7 +352,7 @@ export async function createCaseStudy(input: CaseStudyInput, content: string): P
         order: existing.length,
     };
 
-    if (getIsGuestMode()) {
+    if (await getIsGuestMode()) {
         guestStore.setCaseStudy(slug, caseStudy);
         guestStore.setContent(slug, content);
         return caseStudy;
@@ -365,7 +377,7 @@ export async function updateCaseStudy(
         slug, // don't allow slug change
     };
 
-    if (getIsGuestMode()) {
+    if (await getIsGuestMode()) {
         guestStore.setCaseStudy(slug, updated);
         if (content !== undefined) guestStore.setContent(slug, content);
         return updated;
@@ -425,7 +437,7 @@ const DEFAULT_SETTINGS: Settings = {
 };
 
 export async function getSettings(): Promise<Settings> {
-    if (getIsGuestMode()) {
+    if (await getIsGuestMode()) {
         return guestStore.getSettings() || DEFAULT_SETTINGS;
     }
     if (!isKVEnabled) return DEFAULT_SETTINGS;
@@ -449,7 +461,7 @@ export async function updateSettings(updates: SettingsInput): Promise<Settings> 
         },
     };
 
-    if (getIsGuestMode()) {
+    if (await getIsGuestMode()) {
         guestStore.setSettings(updated);
         return updated;
     }
