@@ -16,21 +16,28 @@ const outfit = Outfit({
 
 import { getSettings } from "@/lib/cms/storage";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getSettings();
+  try {
+    const settings = await getSettings();
+    const metadata: Metadata = {
+      title: settings.siteTitle || "Meet Shah",
+      description: settings.metaDescription || "Product Designer from India who loves cooking, travelling and surfing Reddit.",
+    };
 
-  const metadata: Metadata = {
-    title: settings.siteTitle || "Meet Shah",
-    description: settings.metaDescription || "Product Designer from India who loves cooking, travelling and surfing Reddit.",
-  };
-
-  if (settings.favicon) {
-    metadata.icons = {
-      icon: settings.favicon
+    if (settings.favicon) {
+      metadata.icons = {
+        icon: settings.favicon
+      };
+    }
+    return metadata;
+  } catch (e) {
+    return {
+      title: "Meet Shah",
+      description: "Personal Portfolio and CMS",
     };
   }
-
-  return metadata;
 }
 
 export default async function RootLayout({
@@ -38,7 +45,12 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const settings = await getSettings();
+  let settings;
+  try {
+    settings = await getSettings();
+  } catch (e) {
+    settings = { siteTitle: "Meet Shah", favicon: "" };
+  }
 
   return (
     <html lang="en">

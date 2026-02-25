@@ -8,15 +8,18 @@ const getIsGuestMode = async () => {
     }
 
     // 2. Check server-side headers (Next.js 15+ Server Components)
-    // We use a try-catch and dynamic import to avoid issues in client-side bundles
-    // or static generation phases.
     try {
         const { headers } = await import("next/headers");
         const headersList = await headers();
+
+        // Priority 1: Check for the custom header injected by our middleware
+        if (headersList.get("x-guest-mode") === "true") return true;
+
+        // Priority 2: Check standard host header
         const host = headersList.get("host") || "";
         if (host.includes("guest.")) return true;
     } catch (e) {
-        // This is expected during static generation or in client-side builds
+        // Expected during static generation
     }
 
     // 3. Fallback to build-time environment variable

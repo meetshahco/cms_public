@@ -97,8 +97,18 @@ export default auth((request) => {
         if (pathname.startsWith("/api/")) {
             return;
         }
+
+        const requestHeaders = new Headers(request.headers);
+        if (isGuestSubdomain) {
+            requestHeaders.set("x-guest-mode", "true");
+        }
+
         url.pathname = mappedPathname;
-        return NextResponse.rewrite(url);
+        return NextResponse.rewrite(url, {
+            request: {
+                headers: requestHeaders,
+            }
+        });
     }
 
     // ─── Main domain: redirect /admin access to subdomain ──
