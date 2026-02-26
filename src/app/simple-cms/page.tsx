@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { CMSBackgroundAnimation } from "@/components/auth/CMSBackgroundAnimation";
 import { motion } from "framer-motion";
@@ -7,9 +8,11 @@ import {
     Github,
     Layout,
     Star,
-    Globe
+    Globe,
+    ExternalLink
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { FEATURE_CARDS } from "./cms-config";
 import { adminPath } from "@/lib/admin-utils";
 
@@ -26,11 +29,24 @@ const staggerContainer = {
 };
 
 export default function SimpleCMSLanding() {
+    const [stars, setStars] = useState<number | null>(null);
+
+    useEffect(() => {
+        fetch("https://api.github.com/repos/meetshahco/simplecms")
+            .then(res => res.json())
+            .then(data => {
+                if (data.stargazers_count !== undefined) {
+                    setStars(data.stargazers_count);
+                }
+            })
+            .catch(() => { });
+    }, []);
+
     return (
         <div className="min-h-screen bg-[#050505] text-white flex flex-col font-sans selection:bg-white/20">
             <div className="flex flex-col md:flex-row flex-1">
                 {/* Left Side: Marketing & Showcase */}
-                <div className="w-full md:w-3/5 p-6 sm:p-8 md:p-16 lg:p-24 flex flex-col relative z-10">
+                <div className="w-full md:w-3/5 p-6 sm:p-8 md:pt-12 md:pb-16 md:px-16 lg:pt-16 lg:pb-24 lg:px-24 flex flex-col relative z-10">
 
                     {/* Background Decor (Subtle Greyscale) */}
                     <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-[0.03]">
@@ -38,20 +54,52 @@ export default function SimpleCMSLanding() {
                     </div>
 
                     <div className="relative z-10 space-y-12">
-                        {/* Header / Branding */}
+                        {/* Header / Branding / Intro Section */}
                         <motion.div
                             initial={{ opacity: 0, filter: "blur(10px)", y: 20 }}
                             animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
                             transition={{ duration: 0.8, ease: "easeOut" }}
+                            className="space-y-12"
                         >
-                            <div className="flex items-center gap-3 mb-8">
-                                <motion.div
-                                    whileHover={{ scale: 1.1, rotate: 5 }}
-                                    className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.05)] hover:shadow-white/10 transition-shadow"
+                            <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-3">
+                                    <motion.div
+                                        whileHover={{ scale: 1.05, rotate: 2 }}
+                                        className="w-11 h-11 flex items-center justify-center transition-all overflow-hidden group relative bg-white/[0.03] border border-white/10 rounded-xl backdrop-blur-sm shadow-xl hover:bg-white/[0.05] hover:border-white/20"
+                                    >
+                                        {/* Subtle Glow Effect */}
+                                        <div className="absolute inset-0 bg-white/5 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                                        <Image
+                                            src="/assets/images/simple-cms-logo-v2.png"
+                                            alt="Simple CMS Logo"
+                                            width={56}
+                                            height={56}
+                                            className="w-7 h-7 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] group-hover:scale-110 transition-transform relative z-10"
+                                        />
+                                    </motion.div>
+                                    <h2 className="text-xl font-medium tracking-tight text-neutral-300">Simple CMS</h2>
+                                </div>
+
+                                <Link
+                                    href="https://github.com/meetshahco/simplecms"
+                                    target="_blank"
+                                    data-track="View Code Click"
+                                    data-track-props='{"location": "Simple CMS Header"}'
+                                    className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.06] hover:border-white/10 transition-all group"
                                 >
-                                    <Layout className="w-5 h-5 text-neutral-300" />
-                                </motion.div>
-                                <h2 className="text-xl font-medium tracking-tight text-neutral-300">Simple CMS</h2>
+                                    <div className="flex items-center gap-2">
+                                        <Github className="w-4 h-4 text-neutral-400 group-hover:text-white transition-colors" />
+                                        <span className="text-[13px] font-medium text-neutral-300 group-hover:text-white">Github</span>
+                                    </div>
+                                    <div className="h-3 w-[1px] bg-white/10" />
+                                    <div className="flex items-center gap-1.5 min-w-[32px]">
+                                        <Star className="w-3.5 h-3.5 text-neutral-500 group-hover:text-yellow-500 transition-colors fill-current" />
+                                        <span className="text-[13px] font-mono text-neutral-400 group-hover:text-neutral-200">
+                                            {stars !== null ? (stars / 1000 >= 1 ? `${(stars / 1000).toFixed(1)}k` : stars) : 0}
+                                        </span>
+                                    </div>
+                                </Link>
                             </div>
 
                             <div className="flex flex-col gap-4 w-full">
@@ -73,11 +121,10 @@ export default function SimpleCMSLanding() {
                                         </motion.span>
                                     </span>
                                 </h1>
+                                <p className="mt-2 text-base text-neutral-400 max-w-lg leading-relaxed font-light">
+                                    Built with Next.js, Vercel KV, and Tiptap. Designed for Designers, PMs, and Makers who build high-end product portfolios.
+                                </p>
                             </div>
-
-                            <p className="mt-6 text-base text-neutral-400 max-w-lg leading-relaxed font-light">
-                                Built with Next.js, Vercel KV, and Tiptap. Designed for Designers, PMs, and Makers who build high-end product portfolios.
-                            </p>
                         </motion.div>
 
                         {/* Features List */}
@@ -156,7 +203,7 @@ export default function SimpleCMSLanding() {
 
                                     <div className="mt-auto md:h-full md:mt-0 flex items-end justify-end">
                                         <Link
-                                            href="https://github.com/meetshahco/cms_public"
+                                            href="https://github.com/meetshahco/simplecms"
                                             target="_blank"
                                             data-track="View Code Click"
                                             data-track-props='{"location": "Simple CMS Landing"}'
