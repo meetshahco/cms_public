@@ -1,3 +1,4 @@
+// Triggering fresh deck build
 import { Navbar } from "@/components/Navbar";
 export const dynamic = "force-dynamic";
 
