@@ -33,6 +33,8 @@ export function LoginForm({ prefill = false }: { prefill?: boolean }) {
             setError("Invalid email or password");
             setLoading(false);
         } else {
+            // Initialize the strict tab-session so the GuestSessionManager doesn't instantly boot them
+            sessionStorage.setItem("guest_session_active", "true");
             router.push(adminPath("/"));
             router.refresh();
         }

@@ -48,7 +48,7 @@ export default function AdminLayout({
                     <span className="text-xs font-bold text-white">{isGuest ? "G" : "M"}</span>
                 </div>
                 <button
-                    onClick={() => signOut({ callbackUrl: adminPath("/login") })}
+                    onClick={() => signOut({ callbackUrl: adminPath("/") })}
                     className="p-2 text-neutral-500 hover:text-red-400 transition-colors"
                 >
                     <LogOut className="w-5 h-5" />
@@ -98,7 +98,7 @@ export default function AdminLayout({
                 {/* Footer */}
                 <div className="pb-4 w-full flex justify-center">
                     <button
-                        onClick={() => signOut({ callbackUrl: adminPath("/login") })}
+                        onClick={() => signOut({ callbackUrl: adminPath("/") })}
                         className="flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-xl text-neutral-500 hover:text-red-400 hover:bg-red-500/5 transition-all"
                         title="Sign Out"
                     >
