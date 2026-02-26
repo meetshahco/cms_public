@@ -234,8 +234,7 @@ export default function SimpleCMSLanding() {
                         <div className="text-center md:text-left">
                             <h2 className="text-2xl font-bold mb-2 text-neutral-100 tracking-tight">Experience the Demo</h2>
                             <p className="text-neutral-500 text-sm font-light">
-                                Login below to try the editor interface. <br className="hidden sm:block" />
-                                Data is reset periodically for other guests.
+                                Login below to try the editor interface.
                             </p>
                         </div>
 
