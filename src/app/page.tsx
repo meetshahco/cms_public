@@ -3,7 +3,7 @@ import { Navbar } from "@/components/Navbar";
 export const dynamic = "force-dynamic";
 
 import { Hero } from "@/components/Hero";
-import { ProjectGallery } from "@/components/ProjectGallery";
+import { FeaturedProjectGallery } from "@/components/FeaturedProjectGallery";
 import { GlobalLoader } from "@/components/GlobalLoader";
 import { HomeContainer } from "@/components/HomeContainer";
 import { AboutMe } from "@/components/AboutMe";
@@ -28,7 +28,7 @@ export default async function Home() {
       <HomeContainer>
         <Navbar siteTitle={settings.siteTitle} />
         <Hero />
-        <ProjectGallery projects={featuredProjects} />
+        <FeaturedProjectGallery projects={featuredProjects} />
         <AboutMe />
         <Footer />
       </HomeContainer>
