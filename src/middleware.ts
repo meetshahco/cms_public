@@ -62,21 +62,14 @@ export default auth((request) => {
         if (pathname.startsWith("/api/")) {
             mappedPathname = pathname;
         } else if (pathname === "/") {
-            // Guest root shows landing page. Admin root shows dashboard if logged in.
-            if (isGuestSubdomain) {
-                mappedPathname = "/simple-cms";
-            } else {
-                mappedPathname = isLoggedIn ? "/admin" : "/admin/login";
-            }
+            // Guest root shows landing page if not logged in, but admin dashboard if logged in.
+            // Admin root always shows dashboard.
+            const isLoggedIn = !!request.auth;
+            mappedPathname = (isGuestSubdomain && !isLoggedIn) ? "/simple-cms" : "/admin";
         } else {
-            // If we are on guest subdomain, we don't want to expose admin paths
-            if (isGuestSubdomain) {
-                // If it's not a known public route on the guest subdomain, stay on landing page
-                // or you could choose to let it 404. For now, let's keep it simple.
-                mappedPathname = "/simple-cms";
-            } else {
-                mappedPathname = `/admin${pathname}`;
-            }
+            // On subdomains, paths are relative to the "app" root (admin).
+            // This allows /login, /projects, etc. to work.
+            mappedPathname = `/admin${pathname}`;
         }
     }
 
