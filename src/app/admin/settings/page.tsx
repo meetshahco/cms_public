@@ -219,7 +219,7 @@ export default function SettingsPage() {
                                         <div className="w-24 text-xs font-medium text-neutral-500 uppercase tracking-wider">{link.label}</div>
                                         <input
                                             type="text"
-                                            value={settings.socialLinks[link.key]}
+                                            value={settings.socialLinks[link.key] || ""}
                                             onChange={(e) => setSettings({
                                                 ...settings,
                                                 socialLinks: { ...settings.socialLinks, [link.key]: e.target.value }

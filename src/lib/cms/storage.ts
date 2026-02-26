@@ -451,7 +451,7 @@ const DEFAULT_SETTINGS: Settings = {
     favicon: "", // Default empty
     socialLinks: {
         twitter: "https://twitter.com/meet",
-        github: "https://github.com/meet",
+        github: "https://github.com/meetshahco",
         linkedin: "https://linkedin.com/in/meet",
         medium: "https://medium.com/@meet",
     },
