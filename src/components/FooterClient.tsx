@@ -119,10 +119,10 @@ export function FooterClient({ settings }: { settings: Settings }) {
             </div>
 
             {/* Divider */}
-            <div className="w-full max-w-screen-2xl mx-auto h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-10" />
+            <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-10" />
 
             {/* Middle Section: Logo (Desktop), Socials, CTA */}
-            <div className="w-full max-w-screen-2xl mx-auto flex flex-col md:grid md:grid-cols-3 items-center gap-8 md:gap-0 z-10">
+            <div className="w-full flex flex-col md:grid md:grid-cols-3 items-center gap-8 md:gap-0 z-10">
 
                 {/* Left: Logo - Hidden on Mobile, Left on Desktop */}
                 <div className="hidden md:flex items-center justify-start h-10">
@@ -202,7 +202,7 @@ export function FooterClient({ settings }: { settings: Settings }) {
             </div>
 
             {/* Footer Bottom copyright */}
-            <div className="w-full max-w-screen-2xl mx-auto mt-12 text-center z-10 flex flex-col md:flex-row md:justify-between items-center gap-6 md:gap-0">
+            <div className="w-full mt-12 text-center z-10 flex flex-col md:flex-row md:justify-between items-center gap-6 md:gap-0">
                 <p className="text-[10px] sm:text-xs sm:text-sm text-neutral-500 leading-relaxed text-center md:text-left order-2 md:order-1 select-none whitespace-nowrap">
                     Copyright &copy; {new Date().getFullYear()} {settings.siteTitle || "Meet Shah"}
                 </p>
