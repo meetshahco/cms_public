@@ -54,8 +54,8 @@ export function Navbar({ siteTitle = "Meet Shah" }: { siteTitle?: string }) {
     const [isContactHovered, setIsContactHovered] = useState(false);
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 py-4 md:py-6 backdrop-blur-sm">
-            <div className="flex items-center justify-between w-full px-3 sm:px-6 md:px-[53px]">
+        <nav className="fixed top-0 left-0 right-0 z-50 py-4 md:py-6 backdrop-blur-sm px-6 sm:px-10 md:px-[53px]">
+            <div className="flex items-center justify-between w-full">
                 {pathname !== "/" ? (
                     <Link href="/" className="flex items-center justify-center p-2 -ml-2 text-neutral-400 hover:text-white transition-colors group">
                         <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
