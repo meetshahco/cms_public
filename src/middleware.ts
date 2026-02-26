@@ -40,8 +40,14 @@ export default auth((request) => {
 
     // ─── Subdomain routing ───────────────────────────────────
     if (isAdminSubdomain || isGuestSubdomain) {
-        // Skip internal Next.js routes and static assets
-        if (pathname.startsWith("/_next/") || pathname === "/favicon.ico") {
+        // Skip internal Next.js routes, static assets, and favicon
+        if (
+            pathname.startsWith("/_next/") ||
+            pathname.startsWith("/assets/") ||
+            pathname.startsWith("/media/") ||
+            pathname === "/favicon.ico" ||
+            pathname === "/favicon.png"
+        ) {
             return;
         }
 
@@ -56,12 +62,21 @@ export default auth((request) => {
         if (pathname.startsWith("/api/")) {
             mappedPathname = pathname;
         } else if (pathname === "/") {
-            // Guest root shows landing page if not logged in, but admin dashboard if logged in.
-            // Admin root always shows dashboard.
-            const isLoggedIn = !!request.auth;
-            mappedPathname = (isGuestSubdomain && !isLoggedIn) ? "/simple-cms" : "/admin";
+            // Guest root shows landing page. Admin root shows dashboard if logged in.
+            if (isGuestSubdomain) {
+                mappedPathname = "/simple-cms";
+            } else {
+                mappedPathname = isLoggedIn ? "/admin" : "/admin/login";
+            }
         } else {
-            mappedPathname = `/admin${pathname}`;
+            // If we are on guest subdomain, we don't want to expose admin paths
+            if (isGuestSubdomain) {
+                // If it's not a known public route on the guest subdomain, stay on landing page
+                // or you could choose to let it 404. For now, let's keep it simple.
+                mappedPathname = "/simple-cms";
+            } else {
+                mappedPathname = `/admin${pathname}`;
+            }
         }
     }
 
