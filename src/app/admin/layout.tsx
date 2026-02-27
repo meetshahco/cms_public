@@ -41,7 +41,7 @@ export default function AdminLayout({
     }
 
     return (
-        <div className="min-h-screen bg-[#0a0a0a] flex flex-col md:flex-row">
+        <div className="h-screen bg-[#0a0a0a] flex flex-col md:flex-row overflow-hidden">
             {/* Mobile Header */}
             <header className="md:hidden fixed top-0 left-0 right-0 h-14 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/[0.06] flex items-center justify-between px-4 z-40">
                 <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center">
@@ -111,8 +111,10 @@ export default function AdminLayout({
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 w-full md:ml-[72px] pt-14 pb-[72px] md:pt-0 md:pb-0">
-                <div className="p-4 md:p-8">{children}</div>
+            <main className="flex-1 w-full md:ml-[72px] pt-14 pb-[72px] md:pt-0 md:pb-0 h-full overflow-hidden flex flex-col">
+                <div className="flex-1 flex flex-col min-h-0 min-w-0">
+                    {children}
+                </div>
             </main>
 
             {/* Mobile Bottom Navigation */}

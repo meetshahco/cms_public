@@ -15,6 +15,7 @@ import {
     Save,
     Eye,
     Layers,
+    X,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { adminPath } from "@/lib/admin-utils";
@@ -237,19 +238,19 @@ export default function ProjectWorkspace() {
     }
 
     return (
-        <div className="flex flex-col md:flex-row h-full">
+        <div className="flex flex-col md:flex-row h-full overflow-hidden">
             {/* ─── Desktop Left Nav ──────────────────────── */}
-            <div className="hidden md:flex w-56 flex-shrink-0 border-r border-white/[0.06] flex-col">
+            <div className="hidden md:flex w-52 flex-shrink-0 border-r border-white/[0.06] flex-col">
                 {/* Back link */}
-                <div className="px-4 pt-4 pb-3">
+                <div className="px-3 pt-3 pb-2">
                     <Link
                         href={adminPath("/projects")}
-                        className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-white transition-colors"
+                        className="inline-flex items-center gap-1.5 text-[10px] text-neutral-500 hover:text-white transition-colors uppercase tracking-wider font-medium"
                     >
-                        <ArrowLeft className="w-3 h-3" />
-                        All Projects
+                        <ArrowLeft className="w-2.5 h-2.5" />
+                        Back
                     </Link>
-                    <h2 className="text-sm font-semibold text-white mt-2 truncate">
+                    <h2 className="text-sm font-semibold text-white mt-1.5 truncate">
                         {project.title || "Untitled Project"}
                     </h2>
                 </div>
@@ -258,7 +259,7 @@ export default function ProjectWorkspace() {
                 <div className="mx-3 border-t border-white/[0.06]" />
 
                 {/* Navigation items */}
-                <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-0.5">
+                <nav className="flex-1 overflow-y-auto px-1.5 py-1.5 space-y-0.5">
                     {/* Project details — always first */}
                     <button
                         onClick={() => setActivePanel("project")}
@@ -286,15 +287,15 @@ export default function ProjectWorkspace() {
                             <div key={cs.slug} className="group relative">
                                 <button
                                     onClick={() => switchToCs(cs.slug)}
-                                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-sm transition-all ${activePanel === cs.slug
+                                    className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-left text-xs transition-all pl-9 ${activePanel === cs.slug
                                         ? "bg-white/[0.08] text-white"
                                         : "text-neutral-400 hover:bg-white/[0.04] hover:text-neutral-300"
                                         }`}
                                 >
-                                    <FileText className="w-3.5 h-3.5 flex-shrink-0" />
+                                    <FileText className="w-3 h-3 flex-shrink-0 opacity-50" />
                                     <span className="truncate flex-1">{cs.title}</span>
                                     <span
-                                        className={`text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wider font-medium flex-shrink-0 ${effectiveStatus === "published"
+                                        className={`text-[8px] px-1 py-0.5 rounded-full uppercase tracking-wider font-medium flex-shrink-0 ${effectiveStatus === "published"
                                             ? "bg-emerald-500/10 text-emerald-400"
                                             : "bg-white/5 text-neutral-500"
                                             }`}
@@ -333,7 +334,7 @@ export default function ProjectWorkspace() {
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
                 {/* ─── Unified Responsive Top Header ─── */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-0 px-4 md:px-6 py-4 md:py-3 border-b border-white/[0.06] flex-shrink-0 bg-[#0a0a0a] md:bg-transparent">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-0 px-4 md:px-5 py-4 md:py-2.5 border-b border-white/[0.06] flex-shrink-0 bg-[#0a0a0a] md:bg-transparent">
                     {/* Mobile 1st Line: Back Button */}
                     <div className="md:hidden">
                         <Link
@@ -471,7 +472,7 @@ export default function ProjectWorkspace() {
                 </div>
 
                 {/* Content area */}
-                <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 md:py-8 w-full">
+                <div className="flex-1 overflow-y-auto px-4 md:px-6 py-5 md:py-6 w-full">
                     {activePanel === "project" ? (
                         <ProjectEditor
                             project={project}
@@ -518,6 +519,7 @@ function ProjectEditor({
     onContentChange: (c: string) => void;
 }) {
     const [tagInput, setTagInput] = useState("");
+    const [categoryInput, setCategoryInput] = useState("");
     const [isDraggingCover, setIsDraggingCover] = useState(false);
     const [uploadingCover, setUploadingCover] = useState(false);
 
@@ -632,19 +634,64 @@ function ProjectEditor({
                     Project Settings ▸
                 </summary>
                 <div className="mt-4 space-y-4 p-4 rounded-xl border border-white/[0.06] bg-white/[0.02]">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wider">
-                                Category (Frontend Tags)
-                            </label>
-                            <input
-                                type="text"
-                                value={project.category}
-                                onChange={(e) => update({ category: e.target.value })}
-                                className={inputClass}
-                                placeholder="e.g. FinTech"
-                            />
+                    <div className="w-full">
+                        <label className="block text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wider">
+                            Category (Separated by comma)
+                        </label>
+                        <div className="flex gap-2 mb-3 flex-wrap min-h-[32px]">
+                            {(project.category?.split(',') || []).map(c => c.trim()).filter(Boolean).map((cat, i) => (
+                                <span
+                                    key={i}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 text-white text-xs border border-white/10"
+                                >
+                                    {cat}
+                                    <button
+                                        onClick={() => {
+                                            const cats = (project.category?.split(',') || []).map(c => c.trim()).filter(Boolean);
+                                            const newCats = cats.filter((_, idx) => idx !== i);
+                                            update({ category: newCats.join(', ') });
+                                        }}
+                                        className="text-neutral-500 hover:text-red-400"
+                                    >
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                </span>
+                            ))}
                         </div>
+                        <input
+                            type="text"
+                            value={categoryInput}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                if (val.endsWith(',')) {
+                                    const newCat = val.slice(0, -1).trim();
+                                    if (newCat) {
+                                        const cats = project.category ? project.category.split(',').map(c => c.trim()).filter(Boolean) : [];
+                                        if (!cats.includes(newCat)) {
+                                            update({ category: [...cats, newCat].join(', ') });
+                                        }
+                                        setCategoryInput("");
+                                    }
+                                } else {
+                                    setCategoryInput(val);
+                                }
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    const newCat = categoryInput.trim();
+                                    if (newCat) {
+                                        const cats = project.category ? project.category.split(',').map(c => c.trim()).filter(Boolean) : [];
+                                        if (!cats.includes(newCat)) {
+                                            update({ category: [...cats, newCat].join(', ') });
+                                        }
+                                        setCategoryInput("");
+                                    }
+                                }
+                            }}
+                            className={inputClass}
+                            placeholder="e.g. Branding, Press Enter or Comma"
+                        />
                     </div>
                     <div>
                         <label className="block text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wider">
@@ -663,15 +710,15 @@ function ProjectEditor({
                             Internal SEO Tags (Hidden on Frontend)
                         </label>
                         <div className="flex gap-2 flex-wrap mb-2">
-                            {project.tags.map((tag) => (
+                            {(project.tags || []).map((tag) => (
                                 <span
                                     key={tag}
-                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 text-white text-xs"
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 text-white text-xs border border-white/10"
                                 >
                                     {tag}
                                     <button
                                         onClick={() =>
-                                            update({ tags: project.tags.filter((t) => t !== tag) })
+                                            update({ tags: (project.tags || []).filter((t) => t !== tag) })
                                         }
                                         className="text-neutral-500 hover:text-red-400"
                                     >

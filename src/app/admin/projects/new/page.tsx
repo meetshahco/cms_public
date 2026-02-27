@@ -31,12 +31,14 @@ export default function NewProjectPage() {
     const router = useRouter();
     const [saving, setSaving] = useState(false);
     const [tagInput, setTagInput] = useState("");
+    const [categoryInput, setCategoryInput] = useState("");
     const [content, setContent] = useState("");
     const [form, setForm] = useState({
         title: "",
         category: "",
         description: "",
         tags: [] as string[],
+        categoryList: [] as string[],
         image: "",
         video: "",
         metrics: [] as { label: string; value: string }[],
@@ -96,7 +98,7 @@ export default function NewProjectPage() {
         "w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder-neutral-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent transition-all";
 
     return (
-        <div className="w-full">
+        <div className="flex-1 overflow-y-auto w-full p-4 md:p-8">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 md:gap-0">
                 <div className="flex flex-col items-start gap-1 md:gap-0">
@@ -224,21 +226,60 @@ export default function NewProjectPage() {
                     Project Settings ▸
                 </summary>
                 <div className="mt-4 space-y-4 p-4 rounded-xl border border-white/[0.06] bg-white/[0.02]">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wider">
-                                Category (Frontend Tags)
-                            </label>
-                            <input
-                                type="text"
-                                value={form.category}
-                                onChange={(e) =>
-                                    setForm({ ...form, category: e.target.value })
-                                }
-                                className={inputClass}
-                                placeholder="e.g. FinTech"
-                            />
+                    <div>
+                        <label className="block text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wider">
+                            Category (Separated by comma)
+                        </label>
+                        <div className="flex gap-2 mb-2 flex-wrap min-h-[32px]">
+                            {form.categoryList.map((cat, i) => (
+                                <span
+                                    key={i}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 text-white text-xs border border-white/10"
+                                >
+                                    {cat}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const newList = form.categoryList.filter((_, idx) => idx !== i);
+                                            setForm({ ...form, categoryList: newList, category: newList.join(', ') });
+                                        }}
+                                        className="text-neutral-500 hover:text-red-400"
+                                    >
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                </span>
+                            ))}
                         </div>
+                        <input
+                            type="text"
+                            value={categoryInput}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                if (val.endsWith(',')) {
+                                    const newCat = val.slice(0, -1).trim();
+                                    if (newCat && !form.categoryList.includes(newCat)) {
+                                        const newList = [...form.categoryList, newCat];
+                                        setForm({ ...form, categoryList: newList, category: newList.join(', ') });
+                                        setCategoryInput("");
+                                    }
+                                } else {
+                                    setCategoryInput(val);
+                                }
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    const newCat = categoryInput.trim();
+                                    if (newCat && !form.categoryList.includes(newCat)) {
+                                        const newList = [...form.categoryList, newCat];
+                                        setForm({ ...form, categoryList: newList, category: newList.join(', ') });
+                                        setCategoryInput("");
+                                    }
+                                }
+                            }}
+                            className={inputClass}
+                            placeholder="e.g. Branding, Press Enter or Comma"
+                        />
                     </div>
 
                     <div>

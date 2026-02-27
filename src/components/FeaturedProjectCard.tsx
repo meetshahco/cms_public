@@ -39,30 +39,51 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
     // Video Loop Engine (7 seconds)
     useEffect(() => {
         let interval: NodeJS.Timeout;
-        if (isFocused && videoRef.current) {
-            videoRef.current.currentTime = 0;
-            videoRef.current.play().catch(e => console.log("Video play failed", e));
+        let isSourceValid = true;
 
-            const duration = 7000; // 7 seconds
-            const start = Date.now();
+        if (isFocused && videoRef.current && project.video) {
+            // Check if it's a Loom link (not direct)
+            if (project.video.includes("loom.com/share")) {
+                console.warn("Loom share links are not directly playable in <video> tag. Use a direct .mp4 link.");
+                isSourceValid = false;
+            }
 
-            interval = setInterval(() => {
-                const elapsed = Date.now() - start;
-                const newProgress = (elapsed % duration) / duration;
-                setProgress(newProgress * 100);
+            if (isSourceValid) {
+                videoRef.current.currentTime = 0;
+                const playPromise = videoRef.current.play();
 
-                if (videoRef.current && videoRef.current.currentTime >= 7) {
-                    videoRef.current.currentTime = 0;
+                if (playPromise !== undefined) {
+                    playPromise.catch(e => {
+                        if (e.name !== "AbortError") {
+                            console.log("Video play failed", e);
+                        }
+                    });
                 }
-            }, 16);
+
+                const duration = 7000; // 7 seconds
+                const start = Date.now();
+
+                interval = setInterval(() => {
+                    if (!videoRef.current) return;
+
+                    const elapsed = Date.now() - start;
+                    const newProgress = (elapsed % duration) / duration;
+                    setProgress(newProgress * 100);
+
+                    if (videoRef.current.currentTime >= 7) {
+                        videoRef.current.currentTime = 0;
+                    }
+                }, 16);
+            }
         }
         return () => {
             if (interval) clearInterval(interval);
             if (videoRef.current) {
                 videoRef.current.pause();
+                videoRef.current.currentTime = 0;
             }
         };
-    }, [isFocused]);
+    }, [isFocused, project.video]);
 
     return (
         <Link href={`/work/${project.id}`}>
@@ -105,8 +126,8 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
                 <div className="absolute inset-0 flex flex-col z-10">
                     {/* Top Section: The Theater (Cinematic 16:9 slot) */}
                     <div className={cn(
-                        "relative w-full overflow-hidden bg-black transition-all duration-700 ease-[0.25, 1, 0.5, 1]",
-                        isFocused ? "h-[65%] opacity-100" : "h-0 opacity-0"
+                        "relative w-full overflow-hidden bg-black transition-all duration-700 ease-[0.25, 1, 0.5, 1] flex-shrink-0",
+                        isFocused ? "basis-[62.5%] opacity-100" : "basis-0 opacity-0"
                     )}>
                         <AnimatePresence>
                             {isFocused && project.video && (
@@ -117,20 +138,31 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
                                     transition={{ duration: 0.6 }}
                                     className="absolute inset-0"
                                 >
-                                    <video
-                                        ref={videoRef}
-                                        src={project.video}
-                                        muted
-                                        playsInline
-                                        className="h-full w-full object-cover"
-                                    />
-                                    {/* Glassmorphism Progress Bar */}
-                                    <div className="absolute bottom-6 left-8 right-8 h-[3px] bg-white/10 rounded-full overflow-hidden backdrop-blur-md">
-                                        <motion.div
-                                            className="h-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.8)]"
-                                            style={{ width: `${progress}%` }}
+                                    {project.video && project.video.includes("loom.com/share") ? (
+                                        <iframe
+                                            src={project.video.replace("loom.com/share/", "loom.com/embed/") + "?autoplay=1&muted=1&preload=1"}
+                                            frameBorder="0"
+                                            allowFullScreen
+                                            className="h-full w-full object-cover"
                                         />
-                                    </div>
+                                    ) : (
+                                        <video
+                                            ref={videoRef}
+                                            src={project.video}
+                                            muted
+                                            playsInline
+                                            className="h-full w-full object-cover"
+                                        />
+                                    )}
+                                    {/* Glassmorphism Progress Bar - Only for direct video */}
+                                    {!(project.video && project.video.includes("loom.com/share")) && (
+                                        <div className="absolute bottom-6 left-8 right-8 h-[3px] bg-white/10 rounded-full overflow-hidden backdrop-blur-md">
+                                            <motion.div
+                                                className="h-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.8)]"
+                                                style={{ width: `${progress}%` }}
+                                            />
+                                        </div>
+                                    )}
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -138,12 +170,12 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
 
                     {/* Meta Section: Grounded Alignment */}
                     <div className={cn(
-                        "flex flex-col justify-end p-8 md:p-14 lg:p-20 transition-all duration-700 ease-in-out relative flex-1",
-                        isFocused ? "bg-neutral-950/90 backdrop-blur-xl" : "bg-transparent"
+                        "flex flex-col justify-end p-8 md:p-10 lg:p-12 transition-all duration-700 ease-in-out relative flex-grow min-h-0",
+                        isFocused ? "bg-neutral-950/95 backdrop-blur-3xl" : "bg-transparent"
                     )}>
                         {/* Shifting Title: Optimized for Readability */}
-                        <motion.div layout className="flex flex-col gap-2 max-w-4xl">
-                            <motion.h3
+                        <div className="flex flex-col gap-2 max-w-4xl">
+                            <h3
                                 className={cn(
                                     "font-heading font-extrabold text-white leading-[0.9] tracking-tighter transition-all duration-500",
                                     isFocused
@@ -152,45 +184,49 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
                                 )}
                             >
                                 {project.title}
-                            </motion.h3>
+                            </h3>
 
                             {/* Fading Metadata Content */}
-                            <AnimatePresence>
+                            <AnimatePresence mode="wait">
                                 {isFocused && (
                                     <motion.div
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, x: -10 }}
-                                        transition={{ duration: 0.4, delay: 0.2 }}
-                                        className="mt-6 flex flex-col gap-6"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        transition={{ duration: 0.3, ease: "easeOut" }}
+                                        className="mt-4 flex flex-col gap-4"
                                     >
-                                        <div className="flex items-center gap-4 flex-wrap">
-                                            {project.tags.slice(0, 3).map(tag => (
-                                                <span key={tag} className="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-[10px] uppercase tracking-[0.2em] text-white/70 font-bold whitespace-nowrap backdrop-blur-sm">
-                                                    {tag}
-                                                </span>
-                                            ))}
-                                            <span className="w-1.5 h-1.5 rounded-full bg-white/20" />
-                                            <span className="text-[10px] uppercase tracking-[0.2em] text-white/50 font-bold">
-                                                {new Date(project.createdAt).getFullYear()}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-center justify-between gap-12">
+                                        <div className="flex items-center gap-12">
                                             <p className="text-lg md:text-xl text-neutral-400 font-medium leading-relaxed max-w-2xl line-clamp-2">
                                                 {project.description}
                                             </p>
+                                        </div>
+
+                                        <div className="mt-4 flex items-center justify-between gap-6 border-t border-white/5 pt-6">
+                                            <div className="flex items-center gap-3 flex-wrap">
+                                                {project.tags.length > 0 ? (
+                                                    project.tags.slice(0, 3).map(tag => (
+                                                        <span key={tag} className="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-[10px] uppercase tracking-[0.2em] text-white/70 font-bold whitespace-nowrap backdrop-blur-sm">
+                                                            {tag}
+                                                        </span>
+                                                    ))
+                                                ) : (
+                                                    <span className="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-[10px] uppercase tracking-[0.2em] text-white/70 font-bold whitespace-nowrap backdrop-blur-sm">
+                                                        {project.category}
+                                                    </span>
+                                                )}
+                                            </div>
 
                                             <div className="flex-shrink-0">
-                                                <div className="group/btn relative w-16 h-16 rounded-full bg-white flex items-center justify-center text-black shadow-[0_0_30px_rgba(255,255,255,0.2)] transition-all hover:scale-110 hover:bg-neutral-100">
-                                                    <ArrowRight className="w-8 h-8 -rotate-45 transition-transform group-hover/btn:rotate-0" />
+                                                <div className="group/btn relative w-14 h-14 rounded-full bg-white flex items-center justify-center text-black shadow-[0_0_30px_rgba(255,255,255,0.2)] transition-all hover:scale-110 hover:bg-neutral-100">
+                                                    <ArrowRight className="w-7 h-7 -rotate-45 transition-transform group-hover/btn:rotate-0" />
                                                 </div>
                                             </div>
                                         </div>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
-                        </motion.div>
+                        </div>
 
                         {/* Ambient Glow Background (Inside card) */}
                         <div className="absolute bottom-0 left-0 w-full h-[60%] bg-gradient-to-t from-white/5 to-transparent pointer-events-none opacity-50" />
