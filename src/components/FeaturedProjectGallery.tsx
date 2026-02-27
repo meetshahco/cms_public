@@ -10,9 +10,9 @@ export function FeaturedProjectGallery({ projects }: { projects: Project[] }) {
     if (projects.length === 0) return null;
 
     return (
-        <section className="py-32 px-4 md:px-12 relative overflow-visible">
-            <div className="mx-auto max-w-screen-2xl">
-                <div className="grid grid-cols-1 gap-12 lg:gap-20">
+        <section className="relative overflow-visible px-6 md:px-12 py-32">
+            <div className="mx-auto max-w-5xl">
+                <div className="grid grid-cols-1 gap-20 lg:gap-24">
                     {projects.map((project, index) => (
                         <div key={project.id} className="relative z-0 hover:z-[999]">
                             <motion.div
