@@ -12,7 +12,7 @@ export function FeaturedProjectGallery({ projects }: { projects: Project[] }) {
     return (
         <section className="py-32 px-4 md:px-12 relative overflow-visible">
             <div className="mx-auto max-w-screen-2xl">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-16">
+                <div className="grid grid-cols-1 gap-12 lg:gap-20">
                     {projects.map((project, index) => (
                         <div key={project.id} className="relative z-0 hover:z-[999]">
                             <motion.div
