@@ -20,6 +20,7 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
     const videoRef = useRef<HTMLVideoElement>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [loopKey, setLoopKey] = useState(0);
+    const [dominantColors, setDominantColors] = useState<[string, string, string]>(["#4f46e5", "#7c3aed", "#2563eb"]);
 
     // Mobile scroll-to-pop logic
     const cardRef = useRef<HTMLDivElement>(null);
@@ -37,6 +38,36 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
         [0, 0.5, 1],
         [20, 0, -20]
     );
+
+    // Extract dominant colors from thumbnail on mount
+    useEffect(() => {
+        if (!project.image) return;
+        const img = new window.Image();
+        img.crossOrigin = "anonymous";
+        img.src = project.image;
+        img.onload = () => {
+            try {
+                const canvas = document.createElement("canvas");
+                canvas.width = 80;
+                canvas.height = 80;
+                const ctx = canvas.getContext("2d");
+                if (!ctx) return;
+                ctx.drawImage(img, 0, 0, 80, 80);
+                const sample = (x: number, y: number): string => {
+                    const d = ctx.getImageData(x, y, 1, 1).data;
+                    return `rgb(${d[0]},${d[1]},${d[2]})`;
+                };
+                setDominantColors([
+                    sample(10, 10),
+                    sample(40, 40),
+                    sample(70, 70),
+                ]);
+            } catch (_) { /* tainted canvas, use defaults */ }
+        };
+    }, [project.image]);
+
+    // Animate gradient angle when hovered — using CSS animation instead of rAF
+    // (no React state needed, handled purely by CSS keyframes)
 
     // Hover delay logic (150ms)
     useEffect(() => {
@@ -102,8 +133,69 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
         };
     }, [isFocused, project.video]);
 
+    const glowColor1 = dominantColors[0];
+    const glowColor2 = dominantColors[1];
+
+    // Convert any color (rgb() or #hex) to rgba() with given alpha
+    const toRgba = (color: string, alpha: number): string => {
+        if (color.startsWith('#')) {
+            const r = parseInt(color.slice(1, 3), 16);
+            const g = parseInt(color.slice(3, 5), 16);
+            const b = parseInt(color.slice(5, 7), 16);
+            return `rgba(${r},${g},${b},${alpha})`;
+        }
+        // Already rgb(r,g,b) — convert to rgba
+        return color.replace('rgb(', 'rgba(').replace(')', `,${alpha})`);
+    };
+
+    // CSS keyframes for the spinning gradient
+    const animId = `cg${project.id.replace(/[^a-z0-9]/gi, '').slice(0, 10)}`;
+    const spinCSS = `
+        @keyframes ${animId}-spin {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to   { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+    `;
+
+    // Full 360° conic-gradient so the entire border glows — rotating slowly for motion
+    const conicGrad = `conic-gradient(
+        from 0deg,
+        ${toRgba(glowColor1, 0.55)},
+        ${toRgba(glowColor2, 0.4)},
+        ${toRgba(glowColor1, 0.55)},
+        ${toRgba(glowColor2, 0.4)},
+        ${toRgba(glowColor1, 0.55)}
+    )`;
+
     return (
         <Link href={`/work/${project.id}`} className="block w-full h-[700px] relative">
+            <style>{spinCSS}</style>
+
+            {/* === LAYER 1: Outer glow halo — blurred, spreads outside the card === */}
+            <div
+                className="absolute pointer-events-none"
+                style={{
+                    inset: '-40px',
+                    borderRadius: '80px',
+                    opacity: isHovered ? 1 : 0,
+                    transition: 'opacity 0.7s ease',
+                    zIndex: 1,
+                    overflow: 'hidden',
+                    filter: 'blur(22px)',
+                }}
+            >
+                <div style={{
+                    position: 'absolute',
+                    top: '50%', left: '50%',
+                    width: '200%', height: '200%',
+                    background: conicGrad,
+                    animation: isHovered ? `${animId}-spin 12s linear infinite` : 'none',
+                }} />
+            </div>
+
+
+
+            {/* === CARD: sits on top (z:2), covers center of both layers === */}
             <motion.div
                 ref={cardRef}
                 onMouseEnter={onHoverStart}
@@ -111,22 +203,17 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
                 className="relative w-full h-full rounded-[40px] overflow-hidden cursor-pointer bg-neutral-900 group transform-gpu"
                 animate={{
                     scale: isHovered ? 1.05 : 1,
-                    zIndex: isHovered ? 100 : 1,
-                    boxShadow: isHovered
-                        ? "0 40px 100px -20px rgba(0, 0, 0, 0.9), 0 0 80px rgba(255, 255, 255, 0.05)"
-                        : "none"
+                    zIndex: isHovered ? 2 : 1,
                 }}
                 style={{
                     scale: typeof window !== 'undefined' && window.innerWidth < 768 ? mobileScale : undefined,
                     y: typeof window !== 'undefined' && window.innerWidth < 768 ? mobileY : 0,
                 }}
-                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                transition={{
+                    scale: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
+                    zIndex: { duration: 0 },
+                }}
             >
-                {/* Subtle Gradient Glow Overlay (Hover) */}
-                <div className={cn(
-                    "absolute -inset-[1px] bg-gradient-to-br from-white/20 via-transparent to-white/10 opacity-0 transition-opacity duration-700 pointer-events-none z-50",
-                    isHovered && "opacity-100"
-                )} />
                 {/* Resting State: Full-bleed Thumbnail (Top-aligned) */}
                 <div className="absolute inset-0 z-0">
                     {project.image && (
@@ -170,12 +257,17 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
                                     className="absolute inset-0"
                                 >
                                     {project.video && project.video.includes("loom.com/share") ? (
-                                        <iframe
-                                            src={project.video.replace("loom.com/share/", "loom.com/embed/") + "?autoplay=1&muted=1&preload=1&hide_owner=true&hide_share=true&hide_title=true&hide_embed_code=true"}
-                                            frameBorder="0"
-                                            allowFullScreen
-                                            className="h-full w-full object-cover"
-                                        />
+                                        <div className="relative w-full h-full">
+                                            <iframe
+                                                src={project.video.replace("loom.com/share/", "loom.com/embed/") + "?autoplay=1&muted=1&preload=1&hide_owner=true&hide_share=true&hide_title=true&hide_embed_code=true&hide_speed=true&hideEmbedTopBar=true"}
+                                                frameBorder="0"
+                                                allowFullScreen
+                                                allow="autoplay"
+                                                className="h-full w-full"
+                                            />
+                                            {/* Transparent overlay to hide Loom's native player controls */}
+                                            <div className="absolute inset-0 z-10" />
+                                        </div>
                                     ) : project.video ? (
                                         <video
                                             ref={videoRef}
