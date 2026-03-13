@@ -38,6 +38,7 @@
     "posthog-js": "^1.354.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-pdf": "^10.4.1",
     "tailwind-merge": "^3.4.1"
   },
   "devDependencies": {

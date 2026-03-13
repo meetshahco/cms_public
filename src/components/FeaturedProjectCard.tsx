@@ -38,7 +38,6 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
         [0, 0.5, 1],
         [20, 0, -20]
     );
-
     // Extract dominant colors from thumbnail on mount
     useEffect(() => {
         if (!project.image) return;
@@ -65,9 +64,6 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
             } catch (_) { /* tainted canvas, use defaults */ }
         };
     }, [project.image]);
-
-    // Animate gradient angle when hovered — using CSS animation instead of rAF
-    // (no React state needed, handled purely by CSS keyframes)
 
     // Hover delay logic (150ms)
     useEffect(() => {
@@ -200,20 +196,27 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
                 ref={cardRef}
                 onMouseEnter={onHoverStart}
                 onMouseLeave={onHoverEnd}
-                className="relative w-full h-full rounded-[40px] overflow-hidden cursor-pointer bg-neutral-900 group transform-gpu"
+                className="relative w-full rounded-[40px] overflow-hidden cursor-pointer bg-neutral-900 group transform-gpu"
                 animate={{
-                    scale: isHovered ? 1.05 : 1,
-                    zIndex: isHovered ? 2 : 1,
+                    minHeight: isFocused ? 850 : 650,
+                    scale: isHovered ? 1.3 : 1,
+                    zIndex: isHovered ? 100 : 1,
+                    boxShadow: isHovered
+                        ? "0 40px 100px -20px rgba(0, 0, 0, 0.9), 0 0 80px rgba(255, 255, 255, 0.05)"
+                        : "none"
                 }}
                 style={{
                     scale: typeof window !== 'undefined' && window.innerWidth < 768 ? mobileScale : undefined,
                     y: typeof window !== 'undefined' && window.innerWidth < 768 ? mobileY : 0,
                 }}
-                transition={{
-                    scale: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
-                    zIndex: { duration: 0 },
-                }}
+                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                layout
             >
+                {/* Subtle Gradient Glow Overlay (Hover) */}
+                <div className={cn(
+                    "absolute -inset-[1px] bg-gradient-to-br from-white/20 via-transparent to-white/10 opacity-0 transition-opacity duration-700 pointer-events-none z-50",
+                    isHovered && "opacity-100"
+                )} />
                 {/* Resting State: Full-bleed Thumbnail (Top-aligned) */}
                 <div className="absolute inset-0 z-0">
                     {project.image && (
@@ -239,7 +242,7 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
                 {/* Hover State: The Theater Transition */}
                 <div className={cn(
                     "absolute inset-0 z-10",
-                    isFocused ? "grid grid-rows-[70%_30%]" : "flex flex-col"
+                    isFocused ? "grid grid-rows-[55%_45%]" : "flex flex-col"
                 )}>
                     {/* Top Section: The Theater (Cinematic slot) */}
                     <div className={cn(
@@ -263,7 +266,7 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
                                                 frameBorder="0"
                                                 allowFullScreen
                                                 allow="autoplay"
-                                                className="h-full w-full"
+                                                className="h-full w-full object-cover"
                                             />
                                             {/* Transparent overlay to hide Loom's native player controls */}
                                             <div className="absolute inset-0 z-10" />
@@ -300,14 +303,14 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
 
                     {/* Meta Section: Grounded Alignment */}
                     <div className={cn(
-                        "flex flex-col p-4 md:p-6 transition-all duration-700 ease-in-out relative flex-1 z-30 overflow-hidden",
-                        isFocused ? "bg-black justify-start pt-4" : "bg-transparent justify-end"
+                        "flex flex-col p-6 md:p-10 transition-all duration-700 ease-in-out relative flex-1 z-30 overflow-hidden",
+                        isFocused ? "bg-black justify-start pt-8" : "bg-transparent justify-end"
                     )}>
                         {/* Shifting Title: Optimized for Readability */}
-                        <div className="flex flex-col gap-2 w-full">
+                        <div className="flex flex-col gap-4 w-full">
                             <div className="min-h-[calc(3 * 1.25 * 1rem)] md:min-h-[calc(2 * 1.3 * 1.5rem)] flex items-center">
                                 <motion.h3
-                                    className="font-heading font-semibold text-white leading-[1.25] tracking-tight line-clamp-3"
+                                    className="font-heading font-semibold text-white leading-[1.25] tracking-tight line-clamp-3 md:line-clamp-2"
                                     style={{ originX: 0, originY: 1 }}
                                     animate={{
                                         fontSize: isFocused ? "calc(1.1rem + 0.5vw)" : "calc(2.5rem + 2vw)",
@@ -327,15 +330,15 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: 10 }}
                                         transition={{ duration: 0.3, ease: "easeOut" }}
-                                        className="mt-1 flex flex-col gap-2"
+                                        className="mt-2 flex flex-col gap-6"
                                     >
-                                        <div className="min-h-0">
-                                            <p className="text-xs md:text-sm text-neutral-400 font-medium leading-relaxed w-full line-clamp-3 md:line-clamp-2">
+                                        <div className="min-h-[calc(4 * 1.6 * 0.875rem)] md:min-h-[calc(3 * 1.6 * 1.125rem)]">
+                                            <p className="text-sm md:text-lg text-neutral-400 font-medium leading-relaxed w-full line-clamp-4 md:line-clamp-3">
                                                 {project.description}
                                             </p>
                                         </div>
 
-                                        <div className="mt-0 flex items-center justify-between gap-4 pt-1">
+                                        <div className="mt-2 flex items-center justify-between gap-6 pt-8 border-t border-white/10">
                                             <div className="flex items-center gap-3 flex-wrap">
                                                 {/* Categories as chips - Luxe Minimalist Styling */}
                                                 {project.category && project.category.split(',').slice(0, 2).map(cat => (

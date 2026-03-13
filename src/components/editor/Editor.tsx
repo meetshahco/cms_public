@@ -13,6 +13,8 @@ import Gapcursor from "@tiptap/extension-gapcursor";
 import Dropcursor from "@tiptap/extension-dropcursor";
 import { MetricsBlock } from "./extensions/Metrics";
 import { MockupsBlock } from "./extensions/Mockups";
+import { Iframe } from "./extensions/Iframe";
+import { Slides } from "./extensions/Slides";
 import { useState, useCallback, useRef } from "react";
 import {
     Bold,
@@ -39,6 +41,7 @@ import {
     Activity,
     X,
     MonitorCheck,
+    Presentation,
 } from "lucide-react";
 
 interface EditorProps {
@@ -64,10 +67,11 @@ const slashItems = [
     { label: "YouTube", description: "Embed a YouTube video", icon: YoutubeIcon, command: "youtube" },
     { label: "Loom", description: "Embed a Loom video", icon: Video, command: "loom" },
     { label: "Figma", description: "Embed a Figma file", icon: Figma, command: "figma" },
+    { label: "Slides", description: "Attach PDF or PPT presentation", icon: Presentation, command: "slides" },
 ];
 
 // ─── Upload helper ──────────────────────────────────────────
-async function uploadFile(file: File): Promise<{ url: string; type: string } | null> {
+async function uploadFile(file: File): Promise<{ url: string; type: string; filename?: string; size?: number } | null> {
     const formData = new FormData();
     formData.append("file", file);
 
@@ -97,7 +101,7 @@ export default function Editor({
     const [isDragging, setIsDragging] = useState(false);
     const slashRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const uploadTypeRef = useRef<"image" | "video">("image");
+    const uploadTypeRef = useRef<"image" | "video" | "document">("image");
     const editorWrapperRef = useRef<HTMLDivElement>(null);
 
     const editor = useEditor({
@@ -114,6 +118,8 @@ export default function Editor({
             Dropcursor.configure({ color: "#60a5fa", width: 2 }),
             MetricsBlock,
             MockupsBlock,
+            Iframe,
+            Slides,
         ],
         content,
         editorProps: {
@@ -168,7 +174,16 @@ export default function Editor({
                 if (!files || files.length === 0) return false;
 
                 const file = files[0];
-                if (file.type.startsWith("image/") || file.type.startsWith("video/")) {
+                if (
+                    file.type.startsWith("image/") ||
+                    file.type.startsWith("video/") ||
+                    file.type.includes("pdf") ||
+                    file.type.includes("presentation") ||
+                    file.type.includes("powerpoint") ||
+                    file.name.endsWith(".pdf") || 
+                    file.name.endsWith(".ppt") || 
+                    file.name.endsWith(".pptx")
+                ) {
                     event.preventDefault();
                     handleFileUpload(file);
                     return true;
@@ -221,6 +236,20 @@ export default function Editor({
                                 `<div data-type="video-embed" class="video-embed"><video src="${result.url}" controls style="width:100%;border-radius:12px;"></video></div>`
                             )
                             .run();
+                    } else if (result.type === "document") {
+                        editor
+                            .chain()
+                            .focus()
+                            .insertContent({
+                                type: "slidesBlock",
+                                attrs: {
+                                    url: result.url,
+                                    filename: result.filename,
+                                    type: result.url.toLowerCase().endsWith(".pdf") ? "pdf" : "ppt",
+                                    layout: "full",
+                                },
+                            })
+                            .run();
                     } else {
                         editor.chain().focus().setImage({ src: result.url }).run();
                     }
@@ -244,13 +273,16 @@ export default function Editor({
     );
 
     const openFilePicker = useCallback(
-        (type: "image" | "video") => {
+        (type: "image" | "video" | "document") => {
             uploadTypeRef.current = type;
             if (fileInputRef.current) {
-                fileInputRef.current.accept =
-                    type === "image"
-                        ? "image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
-                        : "video/mp4,video/webm,video/quicktime";
+                if (type === "image") {
+                    fileInputRef.current.accept = "image/jpeg,image/png,image/gif,image/webp,image/svg+xml";
+                } else if (type === "video") {
+                    fileInputRef.current.accept = "video/mp4,video/webm,video/quicktime";
+                } else {
+                    fileInputRef.current.accept = ".pdf,.ppt,.pptx,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation";
+                }
                 fileInputRef.current.click();
             }
         },
@@ -322,6 +354,9 @@ export default function Editor({
                     break;
                 case "videoUpload":
                     openFilePicker("video");
+                    break;
+                case "slides":
+                    openFilePicker("document");
                     break;
                 case "youtube": {
                     const youtubeUrl = prompt("Enter YouTube URL:");
@@ -403,10 +438,19 @@ export default function Editor({
             if (!files || files.length === 0) return;
 
             const file = files[0];
-            if (file.type.startsWith("image/") || file.type.startsWith("video/")) {
+            if (
+                file.type.startsWith("image/") ||
+                file.type.startsWith("video/") ||
+                file.type.includes("pdf") ||
+                file.type.includes("presentation") ||
+                file.type.includes("powerpoint") ||
+                file.name.endsWith(".pdf") || 
+                file.name.endsWith(".ppt") || 
+                file.name.endsWith(".pptx")
+            ) {
                 handleFileUpload(file);
             } else {
-                alert("Unsupported file type. Please drop an image, GIF, or video.");
+                alert("Unsupported file type. Please drop an image, GIF, video, PDF, or PowerPoint presentation.");
             }
         },
         [handleFileUpload]
@@ -417,7 +461,7 @@ export default function Editor({
     return (
         <div
             ref={editorWrapperRef}
-            className="relative"
+            className="relative w-full"
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
             onDragOver={handleDragOver}
@@ -431,17 +475,17 @@ export default function Editor({
                 onChange={handleFileInputChange}
             />
 
-            {/* Upload progress overlay */}
+            {/* Upload progress overlay (Isolated from Tiptap DOM) */}
             {uploading && (
-                <div className="absolute inset-0 z-40 bg-black/50 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                    <div className="flex items-center gap-3 px-5 py-3 rounded-xl bg-[#1a1a1a] border border-white/10">
+                <div className="absolute inset-0 z-40 bg-black/50 backdrop-blur-sm rounded-xl flex items-center justify-center pointer-events-none">
+                    <div className="flex items-center gap-3 px-5 py-3 rounded-xl bg-[#1a1a1a] border border-white/10 shadow-2xl">
                         <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                        <span className="text-sm text-white">Uploading...</span>
+                        <span className="text-sm text-white font-medium">Uploading...</span>
                     </div>
                 </div>
             )}
 
-            {/* Upload error overlay */}
+            {/* Upload error overlay (Isolated from Tiptap DOM) */}
             {uploadError && (
                 <div className="absolute bottom-4 right-4 z-50 bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl flex items-center gap-3 shadow-2xl backdrop-blur-xl animate-in fade-in duration-200">
                     <span className="text-sm font-medium">{uploadError}</span>
@@ -451,17 +495,30 @@ export default function Editor({
                 </div>
             )}
 
-            {/* Drag overlay */}
+            {/* Drag overlay (Isolated from Tiptap DOM) */}
             {isDragging && (
                 <div className="absolute inset-0 z-40 rounded-xl border-2 border-dashed border-blue-400/50 bg-blue-500/5 flex items-center justify-center pointer-events-none">
                     <div className="flex flex-col items-center gap-2">
                         <Upload className="w-8 h-8 text-blue-400" />
                         <span className="text-sm text-blue-400 font-medium">
-                            Drop image, GIF, or video to upload
+                            Drop image, GIF, or document to upload
                         </span>
                     </div>
                 </div>
             )}
+
+            {/* Tiptap Editor Content rendered in strict isolation */}
+            <div 
+                className="prose-wrapper min-h-[400px] cursor-text"
+                onClick={() => {
+                    // If clicking the empty space in the wrapper, focus the editor
+                    if (editor && !editor.isFocused) {
+                        editor.chain().focus().run();
+                    }
+                }}
+            >
+                <EditorContent editor={editor} />
+            </div>
 
             {/* Bubble menu */}
             {editor && (
@@ -560,9 +617,6 @@ export default function Editor({
                 </div>
             )}
 
-            {/* Editor */}
-            <EditorContent editor={editor} />
-
             {/* Editor styles */}
             <style jsx global>{`
         .ProseMirror p.is-editor-empty:first-child::before {
@@ -594,6 +648,37 @@ export default function Editor({
         .ProseMirror iframe { width: 100%; aspect-ratio: 16/9; border-radius: 12px; margin: 1rem 0; border: 1px solid rgba(255,255,255,0.06); }
         .ProseMirror video { width: 100%; border-radius: 12px; margin: 1rem 0; }
         .loom-embed, .figma-embed, .video-embed { margin: 1rem 0; }
+        
+        /* Gapcursor Styles: Makes it easy to click between blocks */
+        .ProseMirror-gapcursor {
+          display: none;
+          pointer-events: none;
+          position: absolute;
+          border-left: 2px solid #60a5fa;
+          margin-top: 0.5rem;
+          height: 1.5rem;
+          animation: gapcursor-blink 1.1s steps(2, start) infinite;
+        }
+        .ProseMirror-focused .ProseMirror-gapcursor {
+          display: block;
+        }
+        @keyframes gapcursor-blink {
+          to { visibility: hidden; }
+        }
+        
+        /* Ensure the editor always has a clickable head and tail */
+        .ProseMirror {
+          padding-top: 40px;
+          padding-bottom: 200px;
+        }
+
+        /* Responsive padding for mobile */
+        @media (max-width: 768px) {
+          .ProseMirror {
+            padding-top: 20px;
+            padding-bottom: 100px;
+          }
+        }
       `}</style>
         </div>
     );

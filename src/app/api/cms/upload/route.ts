@@ -7,6 +7,8 @@ import path from "path";
 
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
 
+export const maxDuration = 60; // Extend duration for large files
+
 export async function POST(req: Request) {
     const session = await auth();
     if (!session) {
@@ -31,6 +33,9 @@ export async function POST(req: Request) {
             "video/mp4",
             "video/webm",
             "video/quicktime",
+            "application/pdf",
+            "application/vnd.ms-powerpoint",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
         ];
 
         if (!allowedTypes.includes(file.type)) {
@@ -51,7 +56,12 @@ export async function POST(req: Request) {
         const filename = `${safeName}-${timestamp}.${ext}`;
 
         let url = "";
-        const isVideo = file.type.startsWith("video/");
+        let fileType = "image";
+        if (file.type.startsWith("video/")) {
+            fileType = "video";
+        } else if (file.type.includes("pdf") || file.type.includes("presentation") || file.type.includes("powerpoint")) {
+            fileType = "document";
+        }
 
         // Use Vercel Blob if token is present
         if (process.env.BLOB_READ_WRITE_TOKEN) {
@@ -73,7 +83,7 @@ export async function POST(req: Request) {
         return NextResponse.json({
             url,
             filename,
-            type: isVideo ? "video" : "image",
+            type: fileType,
             size: file.size,
         });
     } catch (error) {
