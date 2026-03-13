@@ -164,7 +164,7 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
     )`;
 
     return (
-        <Link href={`/work/${project.id}`} className="block w-full h-[700px] relative">
+        <Link href={`/work/${project.id}`} className="block w-full h-auto relative">
             <style>{spinCSS}</style>
 
             {/* === LAYER 1: Outer glow halo — blurred, spreads outside the card === */}
@@ -196,9 +196,9 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
                 ref={cardRef}
                 onMouseEnter={onHoverStart}
                 onMouseLeave={onHoverEnd}
-                className="relative w-full rounded-[40px] overflow-hidden cursor-pointer bg-neutral-900 group transform-gpu"
+                className="relative w-full rounded-[40px] overflow-hidden cursor-pointer bg-neutral-900 group transform-gpu h-[650px]"
                 animate={{
-                    minHeight: isFocused ? 850 : 650,
+                    height: isFocused ? 850 : 650,
                     scale: isHovered ? 1.3 : 1,
                     zIndex: isHovered ? 100 : 1,
                     boxShadow: isHovered
@@ -247,7 +247,7 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
                     {/* Top Section: The Theater (Cinematic slot) */}
                     <div className={cn(
                         "relative w-full overflow-hidden bg-black transition-all duration-700 ease-[0.16, 1, 0.3, 1] flex-shrink-0 z-20",
-                        isFocused ? "h-full opacity-100" : "h-0 opacity-0"
+                        isFocused ? "h-full opacity-100" : "h-0 opacity-0 invisible"
                     )}>
                         <AnimatePresence>
                             {isFocused && (
