@@ -239,10 +239,9 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
                     )} />
                 </div>
 
-                {/* Hover State: The Theater Transition */}
                 <div className={cn(
                     "absolute inset-0 z-10",
-                    isFocused ? "grid grid-rows-[55%_45%]" : "flex flex-col"
+                    isFocused ? "grid grid-rows-[70%_30%]" : "flex flex-col"
                 )}>
                     {/* Top Section: The Theater (Cinematic slot) */}
                     <div className={cn(
@@ -303,14 +302,14 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
 
                     {/* Meta Section: Grounded Alignment */}
                     <div className={cn(
-                        "flex flex-col p-6 md:p-10 transition-all duration-700 ease-in-out relative flex-1 z-30 overflow-hidden",
-                        isFocused ? "bg-black justify-start pt-8" : "bg-transparent justify-end"
+                        "flex flex-col p-4 md:p-6 transition-all duration-700 ease-in-out relative flex-1 z-30 overflow-hidden",
+                        isFocused ? "bg-black justify-start pt-4" : "bg-transparent justify-end"
                     )}>
                         {/* Shifting Title: Optimized for Readability */}
-                        <div className="flex flex-col gap-4 w-full">
+                        <div className="flex flex-col gap-2 w-full">
                             <div className="min-h-[calc(3 * 1.25 * 1rem)] md:min-h-[calc(2 * 1.3 * 1.5rem)] flex items-center">
                                 <motion.h3
-                                    className="font-heading font-semibold text-white leading-[1.25] tracking-tight line-clamp-3 md:line-clamp-2"
+                                    className="font-heading font-semibold text-white leading-[1.25] tracking-tight line-clamp-3"
                                     style={{ originX: 0, originY: 1 }}
                                     animate={{
                                         fontSize: isFocused ? "calc(1.1rem + 0.5vw)" : "calc(2.5rem + 2vw)",
@@ -330,15 +329,15 @@ export function FeaturedProjectCard({ project, onHoverStart, onHoverEnd, isHover
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: 10 }}
                                         transition={{ duration: 0.3, ease: "easeOut" }}
-                                        className="mt-2 flex flex-col gap-6"
+                                        className="mt-1 flex flex-col gap-2"
                                     >
-                                        <div className="min-h-[calc(4 * 1.6 * 0.875rem)] md:min-h-[calc(3 * 1.6 * 1.125rem)]">
-                                            <p className="text-sm md:text-lg text-neutral-400 font-medium leading-relaxed w-full line-clamp-4 md:line-clamp-3">
+                                        <div className="min-h-0">
+                                            <p className="text-xs md:text-sm text-neutral-400 font-medium leading-relaxed w-full line-clamp-3 md:line-clamp-2">
                                                 {project.description}
                                             </p>
                                         </div>
 
-                                        <div className="mt-2 flex items-center justify-between gap-6 pt-8 border-t border-white/10">
+                                        <div className="mt-0 flex items-center justify-between gap-4 pt-1">
                                             <div className="flex items-center gap-3 flex-wrap">
                                                 {/* Categories as chips - Luxe Minimalist Styling */}
                                                 {project.category && project.category.split(',').slice(0, 2).map(cat => (
